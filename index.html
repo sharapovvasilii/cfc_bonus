@@ -3,247 +3,364 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Coffee Cup Cafe — бонусная карта</title>
+<title>Coffee Cup Cafe</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
-    --red: #f21a00;
-    --red-dark: #c41500;
-    --ink: #111111;
-    --muted: #6f6a66;
-    --bg: #f5f2ef;
-    --card: #ffffff;
-    --line: #e7e2dd;
-    --soft: #efebe7;
-    --ok: #1d8a43;
-    --warn: #c77700;
+    --accent: #3449d9;
+    --accent-dark: #2a3bb8;
+    --accent-soft: rgba(52, 73, 217, .16);
+    --ink: #ffffff;
+    --muted: #8b93a3;
+    --bg: #161a24;
+    --bar: #20232b;
+    --card: #0b0c10;
+    --line: #272c39;
+    --soft: #222733;
+    --ok: #2fbf71;
+    --warn: #e0a030;
+    --bad: #d6453d;
+    --navh: 120px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); }
   body {
-    font-family: 'Montserrat', -apple-system, 'Segoe UI', Roboto, sans-serif;
-    font-size: 15px; line-height: 1.4;
-    padding: 12px 16px calc(96px + env(safe-area-inset-bottom));
-    max-width: 480px; margin: 0 auto;
+    font-family: 'Onest', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px; line-height: 1.35;
+    padding: 0 0 calc(110px + env(safe-area-inset-bottom));
+    max-width: 480px; margin: 0 auto; min-height: 100vh;
   }
   body.wide { max-width: 1200px; }
+  body.lock { overflow: hidden; }
   button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
   input, select, textarea { font: inherit; color: inherit; }
   .hidden { display: none !important; }
+  main { padding: 0 16px; }
+
+  /* ---------- шапка и героя ---------- */
+  .stage { position: relative; }
+  .stage.nohero { height: 84px; }
+  .top { position: absolute; top: 0; left: 0; right: 0; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 22px 16px 0; }
+  .top img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; background: #fff; }
+  .top .ttl { flex: 1; min-width: 0; }
+  .top .ttl b { display: block; font-size: 20px; font-weight: 500; letter-spacing: -.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top .ttl span { font-size: 15px; color: rgba(255,255,255,.62); }
+  .rbtn { flex: 0 0 auto; width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,.14); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center; border: 1.5px solid rgba(255,255,255,.18); }
+  .rbtn svg { width: 24px; height: 24px; }
+  .rbtn.on { background: var(--accent); border-color: var(--accent); }
+  .hero { position: relative; height: 430px; overflow: hidden; cursor: pointer; text-align: center; }
+  .hero .hcup { position: absolute; left: 50%; top: 92px; width: 190px; transform: translateX(-50%); animation: float 5s ease-in-out infinite; filter: drop-shadow(0 24px 30px rgba(0,0,0,.35)); }
+  .hero .hcup svg { width: 100%; display: block; }
+  @keyframes float { 50% { transform: translateX(-50%) translateY(-10px); } }
+  .hero::after { content: ''; position: absolute; inset: auto 0 0 0; height: 220px; background: linear-gradient(to bottom, rgba(22,26,36,0), var(--bar)); }
+  .hero .hinfo { position: absolute; left: 16px; right: 16px; bottom: 46px; z-index: 2; }
+  .hero .hname { font-size: 34px; font-weight: 500; letter-spacing: -.8px; line-height: 1.05; }
+  .hero .hprice small { margin-right: 4px; }
+  .hero .hprice { font-size: 16px; margin-top: 8px; opacity: .9; }
 
   /* ---------- вкладки ---------- */
-  .tabs { display: flex; gap: 4px; background: #e9e4df; border-radius: 14px; padding: 4px; margin-bottom: 14px;
-    max-width: 480px; margin-left: auto; margin-right: auto; }
-  .tabs button { flex: 1; padding: 9px 4px; border-radius: 10px; font-weight: 700; font-size: 14px; color: var(--muted); position: relative; }
-  .tabs button[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-  .tabs .badge { position: absolute; top: 3px; right: 6px; min-width: 18px; height: 18px; border-radius: 9px;
-    background: var(--red); color: #fff; font-size: 11px; line-height: 18px; padding: 0 5px; }
+  .nav { position: sticky; top: 0; z-index: 20; background: var(--bar); }
+  .tabs { display: flex; gap: 28px; overflow-x: auto; padding: 14px 20px 10px; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { flex: 0 0 auto; font-size: 30px; font-weight: 500; letter-spacing: -.8px; color: #6c7280; position: relative; text-transform: lowercase; line-height: 1.15; }
+  .tabs button[aria-selected="true"] { color: #fff; }
+  .tabs .badge { position: absolute; top: -2px; right: -14px; min-width: 20px; height: 20px; border-radius: 10px;
+    background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; line-height: 20px; padding: 0 5px; text-align: center; }
+  .secs { display: flex; gap: 26px; overflow-x: auto; padding: 4px 20px 14px; scrollbar-width: none; }
+  .secs::-webkit-scrollbar { display: none; }
+  .secs button { flex: 0 0 auto; font-size: 19px; font-weight: 500; color: #6c7280; text-transform: lowercase; letter-spacing: -.2px; }
+  .secs button.on { color: #fff; }
 
-  /* ---------- красная карта ---------- */
-  .loyalty {
-    background: var(--red); border-radius: 22px; padding: 22px 18px 20px;
-    box-shadow: 0 10px 30px rgba(242, 26, 0, .22); position: relative; overflow: hidden;
-  }
-  .brand { font-weight: 900; font-size: 40px; line-height: .9; letter-spacing: -1.5px;
-    text-align: right; text-transform: uppercase; margin: 0 0 20px; }
-  .stamps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; justify-items: center; }
-  .dot { width: 100%; max-width: 98px; aspect-ratio: 1; border-radius: 50%; background: #fff;
-    display: flex; align-items: center; justify-content: center; text-align: center;
-    font-size: 11.5px; line-height: 1.2; padding: 8px; position: relative; overflow: hidden; }
+  /* ---------- карта гостя ---------- */
+  .loyalty { background: var(--card); border-radius: 32px; padding: 26px 22px 24px; margin-top: 18px; position: relative; overflow: hidden; }
+  .loyalty::before { content: ''; position: absolute; width: 300px; height: 300px; right: -120px; top: -150px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(52,73,217,.55), rgba(52,73,217,0) 70%); pointer-events: none; }
+  .brand { margin: 0 0 4px; font-size: 32px; font-weight: 500; letter-spacing: -1px; line-height: 1.05; text-transform: lowercase; position: relative; }
+  .brand + p { margin: 0 0 22px; color: var(--muted); font-size: 15px; position: relative; }
+  .stamps { display: flex; gap: 8px; align-items: center; position: relative; }
+  .dot { flex: 1; min-width: 0; aspect-ratio: 1; border-radius: 50%; background: var(--soft); color: #5c6373; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 600; position: relative; overflow: hidden; transition: background .3s, color .3s; }
   .dot .phrase { transition: opacity .3s; }
-  .dot .mark { position: absolute; inset: 0; background: url(logo.png) center / 300% no-repeat;
-    opacity: 0; transform: scale(1.6) rotate(-12deg); transition: opacity .25s, transform .35s cubic-bezier(.2,1.6,.4,1); }
-  .dot.on .phrase { opacity: .08; }
-  .dot.on .mark { opacity: 1; transform: scale(1) rotate(var(--rot, -8deg)); }
-  .dot.gift { background: #fff url(logo.png) center / 100% no-repeat; }
-  .dot.gift.ready { animation: pulse 1.6s ease-in-out infinite; }
-  @keyframes pulse { 50% { transform: scale(1.07); box-shadow: 0 0 0 8px #ffffff40; } }
-  .status { margin-top: 18px; color: #fff; font-weight: 700; font-size: 16px; text-align: center; }
-  .status small { display: block; font-weight: 500; font-size: 12.5px; opacity: .9; margin-top: 2px; }
+  .dot .mark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(.4);
+    transition: opacity .25s, transform .35s cubic-bezier(.2,1.6,.4,1); }
+  .dot .mark svg { width: 56%; height: 56%; }
+  .dot.on { background: var(--accent); }
+  .dot.on .phrase { opacity: 0; }
+  .dot.on .mark { opacity: 1; transform: scale(1); }
+  .dot.gift { background: transparent; border: 2px dashed #3c4354; color: #8b93a3; }
+  .dot.gift svg { width: 54%; height: 54%; }
+  .dot.gift.ready { background: var(--accent); border-color: var(--accent); color: #fff; animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.08); box-shadow: 0 0 0 9px rgba(52,73,217,.28); } }
+  .status { margin-top: 22px; font-weight: 500; font-size: 22px; letter-spacing: -.4px; position: relative; }
+  .status small { display: block; font-weight: 400; font-size: 14px; color: var(--muted); margin-top: 4px; letter-spacing: 0; }
 
-  /* ---------- белые блоки ---------- */
-  .panel { background: var(--card); border-radius: 18px; padding: 18px; margin-top: 14px; }
-  .panel h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
-  .qrbox { text-align: center; }
-  .qrbox .hint { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
-  #qr { display: inline-block; padding: 10px; background: #fff; border-radius: 12px; border: 1px solid var(--line); line-height: 0; }
-  #qr img, #qr canvas { width: 200px !important; height: 200px !important; }
-  .code { font-weight: 800; font-size: 26px; letter-spacing: 4px; margin-top: 10px; }
-  .rules { font-size: 13.5px; color: #3a3633; }
-  .rules p { margin: 0 0 8px; }
+  /* ---------- блоки ---------- */
+  .panel { background: var(--card); border-radius: 28px; padding: 20px; margin-top: 14px; }
+  .panel h3 { margin: 0 0 10px; font-size: 22px; font-weight: 500; letter-spacing: -.4px; text-transform: lowercase; }
+  .qrbox { text-align: center; background: #fff; color: #111; }
+  .qrbox .hint { color: #5a6070; font-size: 15px; margin-bottom: 14px; }
+  #qr { display: inline-block; padding: 6px; background: #fff; line-height: 0; }
+  #qr img, #qr canvas { width: 210px !important; height: 210px !important; }
+  .code { font-weight: 600; font-size: 28px; letter-spacing: 5px; margin-top: 10px; color: #111; }
+  .rules { font-size: 15px; color: #c3c8d4; }
+  .rules p { margin: 0 0 10px; }
   .rules p:last-child { margin-bottom: 0; }
-  .link { color: var(--muted); font-size: 13px; text-decoration: underline; display: block; margin: 18px auto 0; }
+  .rules b { color: #fff; font-weight: 600; }
+  .link { color: var(--muted); font-size: 14px; text-decoration: underline; display: block; margin: 22px auto 0; }
 
   /* ---------- кнопки ---------- */
-  .btn { display: block; width: 100%; padding: 15px; border-radius: 14px; font-weight: 800; font-size: 16px;
-    background: var(--red); color: #fff; text-align: center; }
-  .btn:active { background: var(--red-dark); }
-  .btn.dark { background: var(--ink); }
+  .btn { display: block; width: 100%; padding: 17px; border-radius: 28px; font-weight: 500; font-size: 18px;
+    background: var(--accent); color: #fff; text-align: center; letter-spacing: -.2px; }
+  .btn:active { background: var(--accent-dark); }
+  .btn.dark { background: #2b3040; }
   .btn.light { background: var(--soft); color: var(--ink); }
-  .btn.green { background: var(--ok); }
+  .btn.green { background: var(--ok); color: #06210f; }
   .btn[disabled] { opacity: .5; pointer-events: none; }
   .row { display: flex; gap: 8px; margin-top: 10px; }
   .row > * { flex: 1; }
-  .row input { min-width: 0; padding: 13px 14px; border-radius: 12px; border: 1.5px solid var(--line);
-    font-size: 18px; font-weight: 700; letter-spacing: 2px; background: #fff; }
-  .row input:focus { outline: none; border-color: var(--ink); }
-  .row .btn.auto { flex: 0 0 auto; width: auto; padding: 0 18px; }
-  .or { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 12px; }
-  .note { font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
-  .field { width: 100%; padding: 13px 14px; border-radius: 12px; border: 1.5px solid var(--line); margin: 6px 0 10px; background: #fff; }
-  .msg { text-align: center; color: var(--muted); font-size: 14px; padding: 6px 0; }
+  .row input { min-width: 0; padding: 14px 16px; border-radius: 22px; border: 1.5px solid var(--line);
+    font-size: 20px; font-weight: 600; letter-spacing: 2px; background: var(--card); color: #fff; }
+  .row input:focus { outline: none; border-color: var(--accent); }
+  .row .btn.auto { flex: 0 0 auto; width: auto; padding: 0 22px; }
+  .or { text-align: center; color: var(--muted); font-size: 14px; margin-top: 14px; }
+  .note { font-size: 13px; color: var(--muted); margin: 8px 0 12px; }
+  .field { width: 100%; padding: 15px 16px; border-radius: 22px; border: 1.5px solid var(--line); margin: 6px 0 10px; background: var(--card); color: #fff; }
+  .field:focus { outline: none; border-color: var(--accent); }
+  .field::placeholder { color: #667085; }
+  .msg { text-align: center; color: var(--muted); font-size: 15px; padding: 6px 0; }
+  main#tab-staff { padding-top: 18px; }
 
   /* ---------- печати (бариста) ---------- */
-  .today { display: flex; gap: 8px; margin-bottom: 12px; }
-  .today div { flex: 1; background: #fff; border-radius: 14px; padding: 10px 12px; }
-  .today b { display: block; font-size: 20px; font-weight: 800; }
-  .today span { font-size: 12px; color: var(--muted); }
+  .today { display: flex; gap: 10px; margin-bottom: 14px; }
+  .today div { flex: 1; background: var(--card); border-radius: 24px; padding: 14px 16px; }
+  .today b { display: block; font-size: 26px; font-weight: 500; }
+  .today span { font-size: 13px; color: var(--muted); }
   .guest-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .guest-name { font-weight: 800; font-size: 18px; }
-  .guest-code { color: var(--muted); font-size: 13px; white-space: nowrap; }
-  .mini { display: flex; gap: 6px; margin: 12px 0 4px; }
-  .mini i { flex: 1; height: 10px; border-radius: 5px; background: #ece7e2; }
-  .mini i.on { background: var(--red); }
+  .guest-name { font-weight: 500; font-size: 24px; letter-spacing: -.4px; }
+  .guest-code { color: var(--muted); font-size: 14px; white-space: nowrap; }
+  .mini { display: flex; gap: 6px; margin: 14px 0 6px; }
+  .mini i { flex: 1; height: 10px; border-radius: 5px; background: var(--soft); }
+  .mini i.on { background: var(--accent); }
   .mini i.g { flex: 0 0 26px; }
-  .mini i.g.on { background: var(--ink); }
-  .guest-sum { font-size: 14px; color: var(--muted); }
-  .guest-sum b { color: var(--ink); }
-  .gift-box { background: #fff1ee; border: 1.5px solid #ffc9bf; border-radius: 14px; padding: 14px; margin-top: 14px; }
-  .gift-box h4 { margin: 0 0 4px; font-size: 16px; }
-  .gift-box p { margin: 0 0 10px; font-size: 12.5px; color: #5a3a33; }
+  .mini i.g.on { background: #fff; }
+  .guest-sum { font-size: 15px; color: var(--muted); }
+  .guest-sum b { color: #fff; }
+  .gift-box { background: var(--accent-soft); border: 1.5px solid rgba(52,73,217,.55); border-radius: 24px; padding: 16px; margin-top: 16px; }
+  .gift-box h4 { margin: 0 0 4px; font-size: 18px; font-weight: 500; }
+  .gift-box p { margin: 0 0 12px; font-size: 13px; color: #c3c8d4; }
   .gift-box .row { margin-top: 0; }
-  .gift-box .btn { padding: 12px 8px; font-size: 14px; }
-  .stepper { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; gap: 10px; }
-  .stepper .lbl { font-weight: 700; font-size: 14px; }
-  .ctl { display: flex; align-items: center; gap: 4px; }
-  .ctl button { width: 44px; height: 44px; border-radius: 12px; background: var(--soft); font-size: 22px; font-weight: 700; }
-  .ctl output { width: 40px; text-align: center; font-weight: 800; font-size: 22px; }
-  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .stats div { background: #f6f3f0; border-radius: 12px; padding: 10px 12px; }
-  .stats b { display: block; font-size: 20px; font-weight: 800; }
-  .stats span { font-size: 12px; color: var(--muted); }
+  .gift-box .btn { padding: 13px 8px; font-size: 15px; }
+  .stepper { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; gap: 10px; }
+  .stepper .lbl { font-weight: 500; font-size: 15px; }
+  .ctl { display: flex; align-items: center; gap: 6px; }
+  .ctl button { width: 46px; height: 46px; border-radius: 50%; background: #2b3040; font-size: 24px; line-height: 1; }
+  .ctl output { width: 40px; text-align: center; font-weight: 500; font-size: 22px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stats div { background: var(--soft); border-radius: 20px; padding: 12px 14px; }
+  .stats b { display: block; font-size: 24px; font-weight: 500; }
+  .stats span { font-size: 13px; color: var(--muted); }
 
   /* ---------- меню ---------- */
-  .secs { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 10px; margin: 0 -16px; padding-left: 16px; padding-right: 16px;
-    position: sticky; top: 0; background: var(--bg); z-index: 5; scrollbar-width: none; }
-  .secs::-webkit-scrollbar { display: none; }
-  .secs button { flex: 0 0 auto; padding: 8px 14px; border-radius: 20px; background: #fff; font-weight: 700; font-size: 13px; }
-  .secs button.on { background: var(--ink); color: #fff; }
-  .sec-title { font-weight: 900; font-size: 22px; text-transform: uppercase; letter-spacing: -.5px; margin: 18px 0 8px; }
-  .item { display: flex; gap: 12px; align-items: center; background: #fff; border-radius: 16px; padding: 14px; margin-bottom: 8px; width: 100%; text-align: left; }
-  .item .txt { flex: 1; min-width: 0; }
-  .item .nm { font-weight: 800; font-size: 15px; text-transform: uppercase; }
-  .item .ds { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .item .pr { font-size: 13px; font-weight: 700; margin-top: 6px; }
-  .item .pr span { color: var(--muted); font-weight: 500; }
-  .item .plus { flex: 0 0 36px; height: 36px; border-radius: 50%; background: var(--red); color: #fff; font-size: 22px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; }
-  .item .incart { flex: 0 0 auto; background: var(--ink); color: #fff; border-radius: 12px; padding: 3px 8px; font-size: 12px; font-weight: 800; }
-  .banner { background: #fff4e0; border-radius: 14px; padding: 12px 14px; font-size: 13.5px; margin-bottom: 10px; }
+  main#tab-menu { padding-top: 6px; }
+  .sec-title { font-weight: 500; font-size: 30px; letter-spacing: -.8px; text-transform: lowercase; margin: 26px 0 14px; scroll-margin-top: calc(var(--navh) + 8px); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .item { display: flex; flex-direction: column; background: var(--card); border-radius: 28px; padding: 14px 16px 16px; width: 100%; text-align: left; position: relative; min-width: 0; }
+  .item .pic { height: 150px; display: flex; align-items: center; justify-content: center; margin: 0 0 8px; }
+  .item .pic svg { height: 100%; width: auto; max-width: 100%; }
+  .item .nm { font-weight: 400; font-size: 19px; line-height: 1.22; letter-spacing: -.3px; flex: 1; padding-top: 4px; }
+  .item .pr { display: flex; align-items: center; justify-content: space-between; font-size: 17px; margin-top: 14px; }
+  .item .pr .go { width: 20px; height: 20px; color: #5c6373; }
+  .item .pr small { color: var(--muted); font-size: 14px; margin-right: 4px; }
+  .item .incart { position: absolute; top: 12px; right: 12px; min-width: 28px; height: 28px; border-radius: 14px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; line-height: 28px; text-align: center; padding: 0 8px; }
+  .item.wide { grid-column: 1 / -1; flex-direction: row; align-items: stretch; gap: 14px; padding: 12px 20px 14px 14px; }
+  .item.wide .pic { flex: 0 0 38%; height: 170px; margin: 0; }
+  .item.wide .col { flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 14px 0 4px; }
+  .item.wide .nm { font-size: 22px; flex: 0; }
+  .item.wide .ds { font-size: 14px; color: var(--muted); margin-top: 6px; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .banner { background: var(--accent-soft); border: 1px solid rgba(52,73,217,.4); border-radius: 22px; padding: 14px 16px; font-size: 14.5px; margin: 14px 0 6px; color: #dfe3f3; }
 
-  .myorder { background: var(--ink); color: #fff; border-radius: 18px; padding: 16px; margin-bottom: 14px; }
-  .myorder .top { display: flex; justify-content: space-between; align-items: center; }
-  .myorder .no { font-weight: 900; font-size: 22px; }
-  .myorder .st { font-weight: 800; font-size: 13px; padding: 5px 10px; border-radius: 20px; background: #ffffff22; }
-  .myorder .st.ready { background: var(--ok); }
-  .myorder .big { font-size: 17px; font-weight: 800; margin: 10px 0 4px; }
-  .myorder ul { margin: 8px 0 0; padding-left: 18px; font-size: 14px; }
-  .myorder .meta { font-size: 13px; opacity: .8; margin-top: 8px; }
-  .myorder .btn { margin-top: 12px; padding: 11px; font-size: 14px; background: #ffffff22; }
+  .myorder { background: var(--accent); color: #fff; border-radius: 30px; padding: 20px; margin: 16px 0 6px; }
+  .myorder .top { position: static; display: flex; justify-content: space-between; align-items: center; padding: 0; }
+  .myorder .no { font-weight: 500; font-size: 26px; letter-spacing: -.5px; }
+  .myorder .st { font-weight: 500; font-size: 14px; padding: 6px 12px; border-radius: 20px; background: rgba(255,255,255,.2); }
+  .myorder .st.ready { background: #fff; color: var(--accent); }
+  .myorder .big { font-size: 20px; font-weight: 500; margin: 12px 0 4px; letter-spacing: -.3px; }
+  .myorder ul { margin: 8px 0 0; padding-left: 20px; font-size: 15px; }
+  .myorder .meta { font-size: 14px; opacity: .8; margin-top: 10px; }
+  .myorder .btn { margin-top: 14px; padding: 13px; font-size: 16px; background: rgba(255,255,255,.2); }
 
-  .cartbar { position: fixed; left: 16px; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom)); max-width: 448px; margin: 0 auto;
-    background: var(--red); color: #fff; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 10px;
-    font-weight: 800; z-index: 15; box-shadow: 0 8px 24px rgba(242,26,0,.35); }
-  .cartbar span { flex: 1; }
+  .cartbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom)); width: min(340px, calc(100% - 32px));
+    background: rgba(32,35,43,.88); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.5px solid rgba(255,255,255,.14);
+    color: #fff; border-radius: 40px; padding: 8px 8px 8px 26px; display: flex; align-items: center; gap: 10px; z-index: 15;
+    box-shadow: 0 10px 30px rgba(0,0,0,.4); cursor: pointer; }
+  .cartbar .ct { flex: 1; text-align: center; line-height: 1.15; }
+  .cartbar .ct small { display: block; font-size: 14px; color: var(--muted); }
+  .cartbar .ct b { font-size: 26px; font-weight: 500; letter-spacing: -.5px; }
+  .cartbar .cthumb { position: relative; flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; }
+  .cartbar .cthumb svg { height: 44px; width: auto; }
+  .cartbar .cthumb i { position: absolute; top: -2px; right: -2px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--accent); font-style: normal; font-size: 12px; font-weight: 700; line-height: 22px; text-align: center; padding: 0 5px; }
 
-  /* ---------- шторка снизу ---------- */
-  .shade { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
-  .sheet { background: #fff; width: 100%; max-width: 480px; border-radius: 22px 22px 0 0; padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
-    max-height: 90vh; overflow-y: auto; animation: up .2s ease-out; }
+  /* ---------- шторка ---------- */
+  .shade { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
+  .shade.fullmode { background: #000; align-items: stretch; }
+  .sheet { background: var(--bg); width: 100%; max-width: 480px; border-radius: 36px 36px 0 0; padding: 20px 16px calc(18px + env(safe-area-inset-bottom));
+    max-height: 92vh; overflow-y: auto; animation: up .22s ease-out; }
+  .sheet.full { max-height: none; height: 100%; border-radius: 0; padding: 0; overflow: hidden; }
   @keyframes up { from { transform: translateY(40px); opacity: .5; } }
-  .sheet h2 { margin: 0 30px 4px 0; font-size: 20px; font-weight: 900; text-transform: uppercase; }
-  .sheet .x { float: right; width: 32px; height: 32px; border-radius: 50%; background: var(--soft); font-size: 18px; margin: -4px -4px 0 0; }
-  .sheet .ds { color: var(--muted); font-size: 13px; }
-  .sheet h4 { margin: 16px 0 8px; font-size: 13px; text-transform: uppercase; color: var(--muted); letter-spacing: .3px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { padding: 9px 12px; border-radius: 12px; background: var(--soft); font-size: 13.5px; font-weight: 600; }
-  .chip small { color: var(--muted); font-weight: 500; }
-  .chip[aria-pressed="true"] { background: var(--ink); color: #fff; }
-  .chip[aria-pressed="true"] small { color: #ccc; }
+  .sheet h2 { margin: 0; font-size: 26px; font-weight: 500; letter-spacing: -.6px; }
+  .sheet .x { float: right; width: 46px; height: 46px; border-radius: 50%; background: #20242f; border: 1.5px solid #2c3140; font-size: 20px; margin: -4px -2px 0 0; }
+  .sheet .ds { color: var(--muted); font-size: 14px; }
+  .sheet h4 { margin: 20px 0 10px; font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: .2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 11px 16px; border-radius: 20px; background: var(--soft); font-size: 15px; }
+  .chip small { color: var(--muted); }
+  .chip[aria-pressed="true"] { background: #fff; color: #111; }
+  .chip[aria-pressed="true"] small { color: #666; }
   .sheet .btn { margin-top: 16px; }
-  .cline { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); }
-  .cline .t { flex: 1; font-size: 14px; }
-  .cline .t small { color: var(--muted); display: block; }
-  .cline b { white-space: nowrap; }
-  .cline button { color: var(--muted); font-size: 18px; padding: 0 4px; }
-  .total { display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; margin-top: 12px; }
-  select.field { appearance: auto; }
+
+  /* корзина */
+  .chead { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .chead .rbtn { background: #20242f; border-color: #2c3140; }
+  .chead .rbtn.trash { color: #ff5a4d; }
+  .chead .cttl { flex: 1; text-align: center; font-size: 22px; font-weight: 500; letter-spacing: -.4px; }
+  .cpill { text-align: center; background: #0b0c10; border-radius: 24px; padding: 14px; font-size: 18px; margin-bottom: 12px; }
+  .cline { display: flex; gap: 14px; align-items: center; background: var(--card); border-radius: 28px; padding: 14px 16px; margin-bottom: 10px; }
+  .cline .cpic { flex: 0 0 64px; height: 84px; display: flex; align-items: center; justify-content: center; }
+  .cline .cpic svg { height: 100%; width: auto; }
+  .cline .t { flex: 1; min-width: 0; font-size: 18px; }
+  .cline .t em { display: block; font-style: normal; font-size: 14px; color: var(--muted); }
+  .cline .t small { color: var(--muted); display: block; font-size: 13px; line-height: 1.3; }
+  .cline .t .pp { display: block; margin-top: 12px; font-size: 18px; }
+  .cline .qctl { display: flex; align-items: center; gap: 4px; align-self: flex-end; }
+  .cline .qctl button { width: 42px; height: 42px; border-radius: 50%; background: #20242f; font-size: 22px; line-height: 1; }
+  .cline .qctl output { min-width: 22px; text-align: center; font-size: 16px; }
+  .cbottom { margin-top: 16px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .pay { background: var(--soft); border-radius: 22px; padding: 12px 16px; font-size: 14px; color: var(--muted); }
+  .pay b { display: block; color: #fff; font-weight: 400; font-size: 17px; margin-top: 2px; }
+  .total { text-align: right; color: var(--muted); font-size: 16px; }
+  .total b { display: block; font-size: 36px; font-weight: 500; color: #fff; letter-spacing: -1px; line-height: 1.05; }
+
+  /* экран напитка */
+  .pdp { position: relative; height: 100%; display: flex; flex-direction: column; color: #fff; overflow: hidden; }
+  .pdp::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,0) 30%, rgba(0,0,0,0) 55%, rgba(0,0,0,.45)); pointer-events: none; }
+  .ptop { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 22px 16px 0; }
+  .ptop .rbtn { background: rgba(0,0,0,.35); }
+  .ptop .ptitle { flex: 1; text-align: center; font-size: 26px; font-weight: 500; letter-spacing: -.6px; line-height: 1.1; }
+  .pinfo { position: relative; z-index: 2; text-align: center; padding: 12px 24px 0; font-size: 14.5px; color: rgba(255,255,255,.8); }
+  .pinfo .tag { display: inline-block; margin-top: 8px; padding: 5px 12px; border-radius: 14px; background: var(--accent); font-size: 13px; color: #fff; }
+  .phero { position: relative; z-index: 1; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 8px 0; }
+  .phero svg { height: 100%; max-height: 360px; width: auto; filter: drop-shadow(0 28px 34px rgba(0,0,0,.4)); }
+  .pfoot { position: relative; z-index: 2; padding: 0 0 calc(14px + env(safe-area-inset-bottom)); }
+  .agrid { display: grid; grid-auto-flow: column; grid-template-rows: auto auto; grid-auto-columns: 118px; gap: 10px; overflow-x: auto; padding: 0 16px 14px; scrollbar-width: none; justify-content: safe center; }
+  .agrid::-webkit-scrollbar { display: none; }
+  .pdp.gopen .pinfo { display: none; }
+  .atile { background: rgba(120,100,90,.55); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 28px; padding: 10px 8px 8px; min-height: 124px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; font-size: 14.5px; line-height: 1.2; }
+  .atile .ic { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; color: rgba(255,255,255,.95); margin-bottom: 8px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.25); }
+  .atile small { display: block; color: rgba(255,255,255,.6); margin-top: 4px; font-size: 13px; }
+  .atile .pm { margin-top: auto; font-size: 22px; line-height: 1; opacity: .9; }
+  .atile[aria-pressed="true"] { background: #fff; color: #111; }
+  .atile[aria-pressed="true"] small { color: #666; }
+  .grow { display: flex; gap: 10px; overflow-x: auto; padding: 0 16px 14px; scrollbar-width: none; }
+  .grow::-webkit-scrollbar { display: none; }
+  .gt { flex: 0 0 auto; width: 112px; height: 108px; background: rgba(120,100,90,.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 28px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font-size: 14.5px; line-height: 1.15; text-align: center; padding: 0 6px; transition: background .2s; }
+  .gt .pl { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 300; line-height: 1; }
+  .gt.on { background: rgba(255,255,255,.34); }
+  .gt.has .pl { background: #fff; color: #111; font-size: 18px; font-weight: 600; }
+  .ctrl { display: flex; gap: 10px; align-items: center; margin: 0 16px; padding: 8px; border-radius: 44px; background: rgba(110,95,88,.5); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+  .seg { display: flex; gap: 2px; background: rgba(0,0,0,.18); border-radius: 36px; padding: 4px; }
+  .sg { min-width: 54px; height: 64px; border-radius: 32px; font-size: 20px; color: rgba(255,255,255,.75); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 14px; transition: background .2s; }
+  .sg small { font-size: 12px; margin-top: -2px; }
+  .sg[aria-pressed="true"] { background: #fff; color: #111; font-size: 26px; font-weight: 500; }
+  .sg:not([aria-pressed="true"]) small { display: none; }
+  .buy { flex: 1; height: 72px; border-radius: 36px; background: var(--accent); color: #fff; font-size: 26px; font-weight: 400; letter-spacing: -.5px; }
+  .buy:active { background: var(--accent-dark); }
+  .buy[disabled] { opacity: .5; }
+  .pdp .off { position: relative; z-index: 2; margin: 0 16px 10px; text-align: center; font-size: 14px; background: rgba(0,0,0,.4); border-radius: 18px; padding: 12px; }
 
   /* ---------- заказы (планшет) ---------- */
+  main#tab-orders { padding-top: 18px; }
   .ohead { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-  .ohead h2 { margin: 0; font-size: 22px; font-weight: 900; flex: 1; }
-  .pill { padding: 8px 12px; border-radius: 20px; background: #fff; font-weight: 700; font-size: 13px; }
-  .pill.on { background: var(--ok); color: #fff; }
-  .pill.off { background: #b3261e; color: #fff; }
+  .ohead h2 { margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -.8px; flex: 1; text-transform: lowercase; }
+  .pill { padding: 10px 16px; border-radius: 22px; background: var(--soft); font-weight: 500; font-size: 14px; }
+  .pill.on { background: var(--ok); color: #06210f; }
+  .pill.off { background: var(--bad); color: #fff; }
   .ogrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
-  .ocard { background: #fff; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; border: 3px solid transparent; }
-  .ocard.new { border-color: var(--red); animation: glow 1.4s ease-in-out infinite; }
-  @keyframes glow { 50% { box-shadow: 0 0 0 6px rgba(242,26,0,.18); } }
+  .ocard { background: var(--card); border-radius: 28px; padding: 18px; display: flex; flex-direction: column; border: 3px solid transparent; }
+  .ocard.new { border-color: var(--accent); animation: glow 1.4s ease-in-out infinite; }
+  @keyframes glow { 50% { box-shadow: 0 0 0 6px rgba(52,73,217,.28); } }
   .ocard.ready { border-color: var(--ok); }
-  .ocard .top { display: flex; align-items: center; gap: 8px; }
-  .ocard .no { font-size: 30px; font-weight: 900; }
-  .ocard .when { margin-left: auto; font-weight: 800; font-size: 15px; padding: 6px 10px; border-radius: 10px; background: var(--soft); }
-  .ocard .when.soon { background: var(--red); color: #fff; }
+  .ocard .top { position: static; padding: 0; display: flex; align-items: center; gap: 8px; }
+  .ocard .no { font-size: 32px; font-weight: 500; }
+  .ocard .when { margin-left: auto; font-weight: 500; font-size: 15px; padding: 6px 12px; border-radius: 14px; background: var(--soft); }
+  .ocard .when.soon { background: var(--accent); color: #fff; }
   .ocard .who { font-size: 13px; color: var(--muted); margin: 2px 0 8px; }
-  .ocard ul { margin: 0; padding-left: 20px; font-size: 17px; font-weight: 700; line-height: 1.5; flex: 1; }
-  .ocard ul small { font-weight: 500; color: var(--muted); }
-  .ocard .cm { background: #fff4e0; border-radius: 10px; padding: 8px 10px; font-size: 14px; margin-top: 8px; }
+  .ocard ul { margin: 0; padding-left: 20px; font-size: 18px; line-height: 1.5; flex: 1; }
+  .ocard ul small { color: var(--muted); }
+  .ocard .cm { background: rgba(224,160,48,.16); border-radius: 14px; padding: 9px 12px; font-size: 14px; margin-top: 8px; }
   .ocard .sum { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); margin-top: 10px; }
-  .ocard .sum b { color: var(--ink); font-size: 16px; }
+  .ocard .sum b { color: #fff; font-size: 17px; font-weight: 500; }
   .ocard .acts { display: flex; gap: 8px; margin-top: 12px; }
-  .ocard .acts .btn { padding: 14px 8px; font-size: 15px; }
+  .ocard .acts .btn { padding: 15px 8px; font-size: 16px; }
   .ocard .cancel { color: var(--muted); font-size: 13px; text-decoration: underline; margin-top: 10px; align-self: center; }
-  .stchip { font-size: 12px; font-weight: 800; padding: 4px 8px; border-radius: 8px; background: var(--soft); }
-  .stchip.new { background: var(--red); color: #fff; }
-  .stchip.ready { background: var(--ok); color: #fff; }
-  .empty { text-align: center; color: var(--muted); padding: 50px 10px; font-size: 16px; background: #fff; border-radius: 18px; }
-  .recent { margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .stchip { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 10px; background: var(--soft); }
+  .stchip.new { background: var(--accent); color: #fff; }
+  .stchip.ready { background: var(--ok); color: #06210f; }
+  .empty { text-align: center; color: var(--muted); padding: 50px 10px; font-size: 17px; background: var(--card); border-radius: 28px; }
+  .recent { margin-top: 16px; font-size: 14px; color: var(--muted); }
   .recent div { padding: 4px 0; }
 
   .toast { position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom));
-    max-width: 448px; margin: 0 auto; background: var(--ink); color: #fff; border-radius: 14px;
-    padding: 13px 14px; display: flex; align-items: center; gap: 10px; z-index: 50; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-  .toast.err { background: #b3261e; }
-  .toast span { flex: 1; font-weight: 600; font-size: 14px; }
-  .toast button { color: #ffb4a6; font-weight: 800; font-size: 14px; padding: 4px 6px; }
+    max-width: 448px; margin: 0 auto; background: #2d3344; color: #fff; border-radius: 24px;
+    padding: 15px 18px; display: flex; align-items: center; gap: 10px; z-index: 60; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  .toast.err { background: #a8322b; }
+  .toast span { flex: 1; font-weight: 500; font-size: 15px; }
+  .toast button { color: #aab6ff; font-weight: 600; font-size: 15px; padding: 4px 6px; }
 
   #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 14px; z-index: 60; }
-  #loading img { width: 120px; height: 120px; animation: spin 6s linear infinite; }
-  #loading div { color: var(--muted); font-size: 14px; }
+    align-items: center; justify-content: center; gap: 14px; z-index: 80; }
+  #loading img { width: 110px; height: 110px; border-radius: 50%; animation: spin 6s linear infinite; }
+  #loading div { color: var(--muted); font-size: 15px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .ver { text-align: center; color: #b9b2ac; font-size: 11px; margin-top: 18px; }
+  .ver { text-align: center; color: #4a5060; font-size: 11px; margin-top: 22px; }
 </style>
 </head>
 <body>
 
 <div id="loading"><img src="logo.png" alt=""><div>Загружаем…</div></div>
 
-<nav class="tabs" id="tabs" role="tablist">
-  <button role="tab" aria-selected="true" data-tab="card">Карта</button>
-  <button role="tab" aria-selected="false" data-tab="menu">Меню</button>
-  <button role="tab" aria-selected="false" data-tab="staff" class="hidden staff-only">Печати</button>
-  <button role="tab" aria-selected="false" data-tab="orders" class="hidden staff-only">Заказы<span class="badge hidden" id="ordBadge"></span></button>
-</nav>
+<div class="stage nohero" id="stage">
+  <header class="top">
+    <img src="logo.png" alt="">
+    <div class="ttl"><b>Coffee Cup Cafe</b><span id="hours">кофейня</span></div>
+    <button class="rbtn" id="profileBtn" aria-label="Моя карта">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+    </button>
+  </header>
+  <section class="hero hidden" id="hero"></section>
+</div>
+
+<div class="nav" id="nav">
+  <nav class="tabs" id="tabs" role="tablist">
+    <button role="tab" aria-selected="false" data-tab="menu">Меню</button>
+    <button role="tab" aria-selected="true" data-tab="card">Карта</button>
+    <button role="tab" aria-selected="false" data-tab="staff" class="hidden staff-only">Печати</button>
+    <button role="tab" aria-selected="false" data-tab="orders" class="hidden staff-only">Заказы<span class="badge hidden" id="ordBadge"></span></button>
+  </nav>
+  <div class="secs hidden" id="secs"></div>
+</div>
 
 <!-- ================= КАРТА ГОСТЯ ================= -->
 <main id="tab-card">
   <section class="loyalty">
-    <h1 class="brand">Coffee<br>Cup<br>Cafe</h1>
+    <h1 class="brand">Каждый шестой<br>в подарок</h1>
+    <p>Копите печати за напитки</p>
     <div class="stamps" id="stamps"></div>
     <div class="status" id="status"></div>
   </section>
@@ -278,10 +395,9 @@
 <main id="tab-menu" class="hidden">
   <div id="myOrder"></div>
   <div class="banner hidden" id="menuBanner"></div>
-  <div class="secs" id="secs"></div>
   <div id="menuList"></div>
 </main>
-<div class="cartbar hidden" id="cartBar"><span id="cartTxt"></span><b>Оформить →</b></div>
+<div class="cartbar hidden" id="cartBar"><div class="ct"><small id="cartSub"></small><b id="cartTxt"></b></div><div class="cthumb" id="cartThumb"></div></div>
 
 <!-- ================= ПЕЧАТИ (бариста) ================= -->
 <main id="tab-staff" class="hidden">
@@ -361,8 +477,36 @@
 /* ===== Адрес сервера (Google Apps Script → Развернуть → URL веб-приложения) ===== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbx_WCCQXTPAEtkKRtG1jhv4Jm7Hqeb5D1EKeqi398vIlVUqTdTNg8FRDx4ojjaq1xA1/exec';
 
-const PHRASES = ['Первый шаг к бонусу', 'Спасибо, что вернулись', 'Мы рады тебя видеть!', 'Почти скидка', 'Ты уже близко'];
-const ROT = [-14, 9, -4, 12, -9];
+const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const GIFT_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="4.5" rx="1"/><path d="M5 12.5V20h14v-7.5M12 8v12M12 8C9 8 7.5 6.8 8 5.4 8.6 3.8 11.2 4.6 12 8zm0 0c3 0 4.500-1.200 4-2.600C15.400 3.800 12.800 4.600 12 8z"/></svg>';
+const GO_SVG = '<svg class="go" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l6 6-6 6"/></svg>';
+const BACK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+const CLOSE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const TRASH_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zM6 9h12l-1 11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 9zm4 2v8h1.500v-8H10zm2.500 0v8H14v-8h-1.500z"/></svg>';
+const PERSON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg>';
+const MENU_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+
+/* Рисованный стакан: цвета зависят от названия напитка (фото напитков пока нет) */
+function drinkLook(name) {
+  const n = String(name || '').toLowerCase();
+  if (/американо|эспрессо|чёрн|черн|фильтр|ристретто/.test(n)) return { liq: '#2b150a', foam: '#c8905a', bg: '#4a2417', cap: 'foam' };
+  if (/какао|шоколад/.test(n)) return { liq: '#6a3a22', foam: '#ecd8bf', bg: '#4d2a1a', cap: 'foam' };
+  if (/матча/.test(n)) return { liq: '#86ad57', foam: '#dfe9c8', bg: '#2f4a28', cap: 'foam' };
+  if (/чай|сенча|эрл|улун|пуэр|каркад/.test(n)) return { liq: '#c0892f', foam: '', bg: '#5a3a18', cap: '' };
+  if (/смузи|лимонад|фреш|сок|морс|манго|ягод|клубник|малин|апельсин|айс|холодн|тоник/.test(n)) return { liq: '#f08a4a', foam: '', bg: '#6a2e38', cap: '' };
+  return { liq: '#c99568', foam: '#f2e3cd', bg: '#5a3a2a', cap: 'foam' };
+}
+function cupSvg(name) {
+  const c = drinkLook(name);
+  const top = c.foam ? 40 : 30;
+  return '<svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    '<path d="M22 14H78L74 124Q74 132 66 132H34Q26 132 26 124Z" fill="rgba(255,255,255,.07)"/>' +
+    '<path d="M' + (22 + 4 * (top - 14) / 110).toFixed(1) + ' ' + top + 'H' + (78 - 4 * (top - 14) / 110).toFixed(1) + 'L74 124Q74 132 66 132H34Q26 132 26 124Z" fill="' + c.liq + '"/>' +
+    (c.foam ? '<path d="M22.400 25Q50 18 77.600 25L77.100 40H22.900Z" fill="' + c.foam + '"/>' : '') +
+    '<path d="M22 14H78L74 124Q74 132 66 132H34Q26 132 26 124Z" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.600"/>' +
+    '<ellipse cx="50" cy="14" rx="28" ry="3.800" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.400"/>' +
+    '<path d="M30 26L33 120" stroke="rgba(255,255,255,.35)" stroke-width="2.400" stroke-linecap="round"/></svg>';
+}
 const ST_TEXT = { 'новый': 'Ждёт подтверждения', 'готовится': 'Готовим', 'готов': 'Готов!', 'выдан': 'Выдан', 'отменён': 'Отменён' };
 
 const tg = window.Telegram && window.Telegram.WebApp;
@@ -435,27 +579,37 @@ function showTab(name) {
   ['card', 'menu', 'staff', 'orders'].forEach(t => $('tab-' + t).classList.toggle('hidden', t !== name));
   document.body.classList.toggle('wide', name === 'orders');
   store.set('cfc_tab', name);
+  const isMenu = name === 'menu';
+  $('secs').classList.toggle('hidden', !isMenu || !$('secs').children.length);
+  $('hero').classList.toggle('hidden', !isMenu || !$('hero').innerHTML);
+  $('stage').classList.toggle('nohero', $('hero').classList.contains('hidden'));
+  $('profileBtn').innerHTML = isMenu || name !== 'card' ? PERSON_SVG : MENU_SVG;
+  $('profileBtn').classList.toggle('on', name === 'card');
+  window.scrollTo(0, 0);
+  fitNav();
   renderCartBar();
   if (name === 'orders') { loadOrders(); keepAwake(); }
   else poll();
 }
 document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+$('profileBtn').onclick = () => showTab(tab === 'card' ? 'menu' : 'card');
+function fitNav() { document.documentElement.style.setProperty('--navh', $('nav').offsetHeight + 'px'); }
+window.addEventListener('resize', fitNav);
 
 /* ================= КАРТА ГОСТЯ ================= */
 function buildStamps() {
   const box = $('stamps');
   box.innerHTML = '';
-  PHRASES.forEach((p, i) => {
+  for (let i = 0; i < 5; i++) {
     const d = document.createElement('div');
     d.className = 'dot';
-    d.style.setProperty('--rot', ROT[i] + 'deg');
-    d.innerHTML = '<span class="phrase"></span><span class="mark"></span>';
-    d.querySelector('.phrase').textContent = p;
+    d.innerHTML = '<span class="phrase">' + (i + 1) + '</span><span class="mark">' + CHECK_SVG + '</span>';
     box.appendChild(d);
-  });
+  }
   const g = document.createElement('div');
   g.className = 'dot gift';
   g.setAttribute('aria-label', 'Подарок');
+  g.innerHTML = GIFT_SVG;
   box.appendChild(g);
 }
 
@@ -471,7 +625,7 @@ function renderCard(card) {
 
   let main, sub;
   if (card.gifts > 0) {
-    main = '🎁 Кофе в подарок!';
+    main = 'Кофе в подарок!';
     sub = 'Покажите код бариста до заказа' + (card.gifts > 1 ? ' · подарков: ' + card.gifts : '');
   } else {
     const left = need - filled;
@@ -525,35 +679,70 @@ function sections() {
   state.menu.items.forEach(it => { if (!out.includes(it.sec)) out.push(it.sec); });
   return out;
 }
-function priceLine(it) {
-  return it.sizes.map(s => (s.size ? '<span>' + esc(s.size) + '</span> ' : '') + rub(s.price)).join(' · ');
+function priceFrom(it) {
+  const min = Math.min.apply(null, it.sizes.map(s => s.price));
+  const multi = it.sizes.length > 1 && it.sizes.some(s => s.price !== min);
+  return (multi ? '<small>от</small>' : '') + rub(min);
+}
+function renderHero() {
+  const it = state.menu.items[0];
+  if (!it) { $('hero').innerHTML = ''; return; }
+  const c = drinkLook(it.name);
+  $('hero').style.background = 'radial-gradient(120% 80% at 50% 38%, ' + c.bg + ', #12151d 80%)';
+  $('hero').innerHTML = '<div class="hcup">' + cupSvg(it.name) + '</div><div class="hinfo"><div class="hname">' + esc(it.name) +
+    '</div><div class="hprice">' + priceFrom(it) + '</div></div>';
+  $('hero').onclick = () => openItem(it);
 }
 function renderMenu() {
   const secs = sections();
   $('secs').innerHTML = secs.map((s, i) => '<button data-i="' + i + '">' + esc(s) + '</button>').join('');
   $('secs').querySelectorAll('button').forEach(b => b.onclick = () => {
     const el = $('sec-' + b.dataset.i);
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 60, behavior: 'smooth' });
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - $('nav').offsetHeight - 6, behavior: 'smooth' });
   });
   let html = '';
   secs.forEach((s, i) => {
-    html += '<div class="sec-title" id="sec-' + i + '">' + esc(s) + '</div>';
-    state.menu.items.forEach((it, k) => {
-      if (it.sec !== s) return;
+    const list = [];
+    state.menu.items.forEach((it, k) => { if (it.sec === s) list.push([it, k]); });
+    html += '<div class="sec-title" id="sec-' + i + '">' + esc(s) + '</div><div class="grid">';
+    list.forEach(([it, k], j) => {
       const n = cart.filter(c => c.name === it.name).reduce((a, c) => a + c.qty, 0);
-      html += '<button class="item" data-k="' + k + '"><div class="txt"><div class="nm">' + esc(it.name) + '</div>' +
-        (it.desc ? '<div class="ds">' + esc(it.desc) + '</div>' : '') +
-        '<div class="pr">' + priceLine(it) + '</div></div>' +
-        (n ? '<span class="incart">' + n + '</span>' : '') + '<span class="plus">+</span></button>';
+      const wide = j === 0 && list.length % 2 === 1;
+      const badge = n ? '<span class="incart">' + n + '</span>' : '';
+      if (wide) {
+        html += '<button class="item wide" data-k="' + k + '">' + badge + '<div class="pic">' + cupSvg(it.name) + '</div><div class="col"><div class="nm">' + esc(it.name) + '</div>' +
+          (it.desc ? '<div class="ds">' + esc(it.desc) + '</div>' : '<div class="ds"></div>') +
+          '<div class="pr"><span>' + priceFrom(it) + '</span>' + GO_SVG + '</div></div></button>';
+      } else {
+        html += '<button class="item" data-k="' + k + '">' + badge + '<div class="pic">' + cupSvg(it.name) + '</div><div class="nm">' + esc(it.name) +
+          '</div><div class="pr"><span>' + priceFrom(it) + '</span>' + GO_SVG + '</div></button>';
+      }
     });
+    html += '</div>';
   });
   $('menuList').innerHTML = html || '<div class="empty">Меню пока пустое</div>';
   $('menuList').querySelectorAll('.item').forEach(b => b.onclick = () => openItem(state.menu.items[+b.dataset.k]));
+  renderHero();
+  if (tab === 'menu') { $('secs').classList.toggle('hidden', !secs.length); $('hero').classList.toggle('hidden', !$('hero').innerHTML); $('stage').classList.toggle('nohero', !$('hero').innerHTML); fitNav(); }
   renderMenuBanner();
+  markSection();
 }
+function markSection() {
+  if (tab !== 'menu') return;
+  const off = $('nav').offsetHeight + 40;
+  let cur = 0;
+  document.querySelectorAll('.sec-title').forEach((el, i) => { if (el.getBoundingClientRect().top <= off) cur = i; });
+  document.querySelectorAll('#secs button').forEach((b, i) => {
+    const on = i === cur;
+    if (on && !b.classList.contains('on')) $('secs').scrollTo({ left: b.offsetLeft - 20, behavior: 'smooth' });
+    b.classList.toggle('on', on);
+  });
+}
+window.addEventListener('scroll', markSection, { passive: true });
 
 function renderMenuBanner() {
   const cfg = state.cfg;
+  $('hours').textContent = cfg ? (cfg.off ? 'предзаказ выключен' : 'до ' + cfg.close) : 'кофейня';
   let t = '';
   if (cfg && cfg.off) t = 'Сейчас кофейня не принимает предзаказы. Меню можно посмотреть.';
   else if (cfg && !cfg.enabled) t = 'Предзаказ работает с ' + cfg.open + ' до ' + cfg.close + '. Сейчас можно только посмотреть меню.';
@@ -563,53 +752,97 @@ function renderMenuBanner() {
 function canOrder() { return !state.cfg || (state.cfg.enabled && !state.cfg.off); }
 
 /* ---------- шторка ---------- */
-function openSheet(html) {
-  $('sheet').innerHTML = '<button class="x" aria-label="Закрыть">✕</button>' + html;
-  $('sheet').querySelector('.x').onclick = closeSheet;
+function openSheet(html, opts) {
+  opts = opts || {};
+  const sh = $('sheet');
+  sh.className = 'sheet' + (opts.full ? ' full' : '');
+  sh.style.background = opts.bg || '';
+  sh.innerHTML = (opts.full ? '' : '<button class="x" aria-label="Закрыть">✕</button>') + html;
+  if (!opts.full) sh.querySelector('.x').onclick = closeSheet;
+  $('shade').classList.toggle('fullmode', !!opts.full);
   $('shade').classList.remove('hidden');
+  document.body.classList.add('lock');
+  try { if (tg && tg.BackButton) { tg.BackButton.show(); tg.BackButton.onClick(closeSheet); } } catch (e) {}
 }
-function closeSheet() { $('shade').classList.add('hidden'); }
+function closeSheet() {
+  $('shade').classList.add('hidden');
+  $('shade').classList.remove('fullmode');
+  document.body.classList.remove('lock');
+  try { if (tg && tg.BackButton) { tg.BackButton.offClick(closeSheet); tg.BackButton.hide(); } } catch (e) {}
+}
 $('shade').addEventListener('click', e => { if (e.target === $('shade')) closeSheet(); });
 
-/* ---------- выбор напитка ---------- */
+/* ---------- выбор напитка (на весь экран) ---------- */
+const SZ_LETTERS = ['S', 'M', 'L', 'XL', 'XXL'];
+const ADDON_HUES = [18, 32, 48, 140, 200, 265, 320, 350];
+function addonHue(name) { let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return ADDON_HUES[h % ADDON_HUES.length]; }
+
 function openItem(it) {
-  let size = it.sizes[0].size, qty = 1;
+  let size = it.sizes[0].size, openGroup = '';
   const adds = new Set();
   const groups = {};
   state.menu.addons.forEach(a => { (groups[a.sec] = groups[a.sec] || []).push(a); });
+  const gnames = Object.keys(groups);
+  const look = drinkLook(it.name);
   const price = () => {
     const s = it.sizes.find(x => x.size === size).price;
-    return (s + state.menu.addons.filter(a => adds.has(a.name)).reduce((t, a) => t + a.price, 0)) * qty;
+    return s + state.menu.addons.filter(a => adds.has(a.name)).reduce((t, a) => t + a.price, 0);
   };
-  let html = '<h2>' + esc(it.name) + '</h2>' + (it.desc ? '<div class="ds">' + esc(it.desc) + '</div>' : '');
-  if (it.sizes.length > 1 || it.sizes[0].size) {
-    html += '<h4>Объём</h4><div class="chips" id="szs">' + it.sizes.map(s =>
-      '<button class="chip" data-s="' + esc(s.size) + '">' + esc(s.size || 'стандарт') + ' <small>' + rub(s.price) + '</small></button>').join('') + '</div>';
+  const multi = it.sizes.length > 1;
+  let html = '<div class="pdp"><div class="ptop"><button class="rbtn" id="pBack" aria-label="Назад">' + BACK_SVG + '</button>' +
+    '<div class="ptitle">' + esc(it.name) + '</div><span class="rbtn" style="visibility:hidden"></span></div>';
+  html += '<div class="pinfo">' + esc(it.desc || '') + (it.stamp ? '<div><span class="tag">за напиток — печать на карту</span></div>' : '') + '</div>';
+  html += '<div class="phero">' + cupSvg(it.name) + '</div>';
+  html += '<div class="pfoot">';
+  if (!canOrder()) html += '<div class="off">Предзаказ сейчас не работает.</div>';
+  html += '<div class="agrid hidden" id="aGrid"></div>';
+  if (gnames.length) {
+    html += '<div class="grow" id="gRow">' + gnames.map(g => '<button class="gt" data-g="' + esc(g) + '"><span class="pl">+</span><span>' + esc(g) + '</span></button>').join('') + '</div>';
   }
-  Object.keys(groups).forEach(g => {
-    html += '<h4>' + esc(g) + '</h4><div class="chips adds">' + groups[g].map(a =>
-      '<button class="chip" data-a="' + esc(a.name) + '">' + esc(a.name.replace(/^Сироп /, '')) + ' <small>+' + a.price + '</small></button>').join('') + '</div>';
-  });
-  html += '<div class="stepper"><div class="lbl">Количество</div><div class="ctl"><button id="iMinus">−</button><output id="iQty">1</output><button id="iPlus">+</button></div></div>';
-  html += canOrder() ? '<button class="btn" id="iAdd"></button>' : '<div class="note" style="margin-top:14px">Предзаказ сейчас не работает.</div>';
-  openSheet(html);
+  html += '<div class="ctrl">';
+  if (multi) {
+    html += '<div class="seg" id="seg">' + it.sizes.map((s, i) => '<button class="sg" data-s="' + esc(s.size) + '">' +
+      (SZ_LETTERS[i] || (i + 1)) + '<small>' + esc(s.size) + '</small></button>').join('') + '</div>';
+  }
+  html += '<button class="buy" id="iAdd"' + (canOrder() ? '' : ' disabled') + '></button></div></div></div>';
+  openSheet(html, { full: true, bg: 'linear-gradient(180deg, ' + look.bg + ' 0%, #b88f6c 62%, #3a2a22 100%)' });
+  $('pBack').onclick = closeSheet;
+
+  const gridFor = g => '<div class="agrid" id="aGrid" style="grid-template-rows:repeat(' + (groups[g].length > 3 ? 2 : 1) + ',auto)">' + groups[g].map(a => '<button class="atile" data-a="' + esc(a.name) + '">' +
+    '<span class="ic" style="background:hsl(' + addonHue(a.name) + ' 45% 38%)">' + esc(a.name.replace(/^Сироп |^Соус /, '').charAt(0).toUpperCase()) + '</span>' +
+    esc(a.name.replace(/^Сироп /, '')) + '<small>' + (a.price ? '+' + rub(a.price) : '0 ₽') + '</small><span class="pm">+</span></button>').join('') + '</div>';
   const refresh = () => {
     $('sheet').querySelectorAll('[data-s]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === size)));
-    $('sheet').querySelectorAll('[data-a]').forEach(b => b.setAttribute('aria-pressed', String(adds.has(b.dataset.a))));
-    $('iQty').textContent = qty;
-    if ($('iAdd')) $('iAdd').textContent = 'Добавить · ' + rub(price());
+    $('sheet').querySelectorAll('[data-a]').forEach(b => {
+      const on = adds.has(b.dataset.a);
+      b.setAttribute('aria-pressed', String(on));
+      b.querySelector('.pm').textContent = on ? '✓' : '+';
+    });
+    $('sheet').querySelectorAll('[data-g]').forEach(b => {
+      const n = groups[b.dataset.g].filter(a => adds.has(a.name)).length;
+      b.classList.toggle('on', b.dataset.g === openGroup);
+      b.classList.toggle('has', n > 0);
+      b.querySelector('.pl').textContent = n > 0 ? n : '+';
+    });
+    $('iAdd').textContent = '+ ' + rub(price());
   };
-  $('sheet').querySelectorAll('[data-s]').forEach(b => b.onclick = () => { size = b.dataset.s; refresh(); });
-  $('sheet').querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+  const bindTiles = () => $('sheet').querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
     if (adds.has(b.dataset.a)) adds.delete(b.dataset.a); else if (adds.size < 5) adds.add(b.dataset.a);
     refresh();
   });
-  $('iMinus').onclick = () => { qty = Math.max(1, qty - 1); refresh(); };
-  $('iPlus').onclick = () => { qty = Math.min((state.cfg && state.cfg.maxQty) || 5, qty + 1); refresh(); };
-  if ($('iAdd')) $('iAdd').onclick = () => {
+  $('sheet').querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
+    openGroup = openGroup === b.dataset.g ? '' : b.dataset.g;
+    const cur = $('aGrid');
+    if (openGroup) { cur.outerHTML = gridFor(openGroup); bindTiles(); }
+    else cur.outerHTML = '<div class="agrid hidden" id="aGrid"></div>';
+    $('sheet').querySelector('.pdp').classList.toggle('gopen', !!openGroup);
+    refresh();
+  });
+  $('sheet').querySelectorAll('[data-s]').forEach(b => b.onclick = () => { size = b.dataset.s; refresh(); });
+  $('iAdd').onclick = () => {
     const max = (state.cfg && state.cfg.maxPositions) || 10;
     if (cart.length >= max) return toast('Не больше ' + max + ' позиций в заказе', { error: true });
-    cart.push({ name: it.name, size, addons: [...adds], qty, price: price() / qty });
+    cart.push({ name: it.name, size, addons: [...adds], qty: 1, price: price() });
     saveCart();
     closeSheet();
     toast('Добавлено: ' + it.name);
@@ -623,11 +856,14 @@ function cartTotal() { return cart.reduce((a, c) => a + c.price * c.qty, 0); }
 function lineText(c) {
   return (c.qty > 1 ? c.qty + '× ' : '') + c.name + (c.size ? ' ' + c.size : '');
 }
+function prepMin() { return (state.cfg && state.cfg.prep) || 10; }
 function renderCartBar() {
   const n = cart.reduce((a, c) => a + c.qty, 0);
   const show = tab === 'menu' && cart.length > 0 && !orderActive();
   $('cartBar').classList.toggle('hidden', !show);
-  $('cartTxt').textContent = n + ' ' + plural(n, 'напиток', 'напитка', 'напитков') + ' · ' + rub(cartTotal());
+  $('cartTxt').textContent = rub(cartTotal());
+  $('cartSub').textContent = n + ' ' + plural(n, 'напиток', 'напитка', 'напитков') + ' · ' + prepMin() + ' мин';
+  $('cartThumb').innerHTML = cart.length ? cupSvg(cart[cart.length - 1].name) + '<i>' + n + '</i>' : '';
 }
 $('cartBar').onclick = openCart;
 
@@ -649,24 +885,38 @@ function openCart() {
     const it = state.menu.items.find(i => i.name === c.name);
     return it && it.stamp;
   }).reduce((a, c) => a + c.qty, 0);
-  let html = '<h2>Ваш заказ</h2>';
-  html += cart.map((c, i) => '<div class="cline"><div class="t">' + esc(lineText(c)) +
-    (c.addons.length ? '<small>+ ' + esc(c.addons.join(', ').toLowerCase()) + '</small>' : '') + '</div><b>' + rub(c.price * c.qty) +
-    '</b><button data-del="' + i + '" aria-label="Убрать">✕</button></div>').join('');
-  html += '<div class="total"><span>Итого</span><span>' + rub(cartTotal()) + '</span></div>';
+  const maxQty = (state.cfg && state.cfg.maxQty) || 5;
+  let html = '<div class="chead"><button class="rbtn trash" id="cClear" aria-label="Очистить">' + TRASH_SVG + '</button>' +
+    '<div class="cttl">Ваш заказ</div><button class="rbtn" id="cX" aria-label="Закрыть">' + CLOSE_SVG + '</button></div>';
+  html += '<div class="cpill">приготовим за ~' + prepMin() + ' мин</div>';
+  html += cart.map((c, i) => '<div class="cline"><div class="cpic">' + cupSvg(c.name) + '</div><div class="t">' +
+    (c.size ? '<em>' + esc(c.size) + '</em>' : '') + esc(c.name) +
+    (c.addons.length ? '<small>+ ' + esc(c.addons.join(', ').toLowerCase()) + '</small>' : '') +
+    '<span class="pp">' + rub(c.price * c.qty) + '</span></div>' +
+    '<div class="qctl"><button data-q="' + i + ':-1" aria-label="Меньше">−</button><output>' + c.qty + '</output><button data-q="' + i + ':1" aria-label="Больше">+</button></div></div>').join('');
   const slots = timeSlots();
   html += '<h4>Когда заберёте</h4><div class="chips"><button class="chip" data-t="now" aria-pressed="true">Как можно скорее</button>' +
     (slots.length ? '<button class="chip" data-t="at" aria-pressed="false">Ко времени</button>' : '') + '</div>' +
     '<select class="field hidden" id="cTime">' + slots.map(s => '<option>' + s + '</option>').join('') + '</select>';
   html += '<h4>Комментарий</h4><input class="field" id="cComment" maxlength="200" placeholder="Например: без сахара, погорячее">';
-  html += '<div class="note">Оплата на кассе при получении.' + (stamps ? ' При выдаче на карту добавится ' + stamps + ' ' +
-    plural(stamps, 'печать', 'печати', 'печатей') + '.' : '') +
-    (state.card && state.card.gifts > 0 ? ' 🎁 У вас есть подарок — скажите бариста при получении.' : '') + '</div>';
+  html += '<div class="note">' + (stamps ? 'При выдаче на карту добавится ' + stamps + ' ' + plural(stamps, 'печать', 'печати', 'печатей') + '.' : '') +
+    (state.card && state.card.gifts > 0 ? ' У вас есть подарок — скажите бариста при получении.' : '') + '</div>';
+  html += '<div class="cbottom"><div class="pay">Способ оплаты<b>На кассе</b></div><div class="total">Итого<b>' + rub(cartTotal()) + '</b></div></div>';
   html += '<button class="btn" id="cSend">Отправить заказ</button>';
   openSheet(html);
+  $('sheet').querySelector('.x').classList.add('hidden');
   let mode = 'now';
-  $('sheet').querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
-    cart.splice(+b.dataset.del, 1);
+  $('cX').onclick = closeSheet;
+  $('cClear').onclick = async () => {
+    if (!(await confirmBox('Очистить заказ?'))) return;
+    cart = [];
+    saveCart();
+    closeSheet();
+  };
+  $('sheet').querySelectorAll('[data-q]').forEach(b => b.onclick = () => {
+    const p = b.dataset.q.split(':'), i = +p[0], d = +p[1];
+    const q = cart[i].qty + d;
+    if (q < 1) cart.splice(i, 1); else if (q <= maxQty) cart[i].qty = q; else return;
     saveCart();
     if (cart.length) openCart(); else closeSheet();
   });
@@ -700,6 +950,7 @@ function openCart() {
     }
   };
 }
+
 
 /* ---------- заказ гостя ---------- */
 function setMyOrder(o) {
@@ -993,7 +1244,7 @@ async function start() {
   if (tg) {
     tg.ready();
     tg.expand();
-    try { tg.setHeaderColor('#f5f2ef'); tg.setBackgroundColor('#f5f2ef'); } catch (e) {}
+    try { tg.setHeaderColor('#20232b'); tg.setBackgroundColor('#161a24'); } catch (e) {}
     try { if (tg.isVersionAtLeast('7.7')) tg.disableVerticalSwipes(); } catch (e) {}
   }
   if (!inTg || !apiReady) {
@@ -1016,6 +1267,9 @@ async function start() {
     } else if (t) {
       showTab(t);
     }
+    const qs = new URLSearchParams(location.search);
+    if (qs.get('open') !== null) { showTab('menu'); openItem(state.menu.items[+qs.get('open') || 0]); if (qs.get('group')) document.querySelector('[data-g]').click(); }
+    if (qs.get('cart')) { showTab('menu'); cart = [{ name: 'Капучино', size: '340 мл', addons: ['Сироп карамель'], qty: 1, price: 260 }, { name: 'Американо', size: '240 мл', addons: [], qty: 2, price: 170 }]; renderCartBar(); openCart(); }
     if (!t) toast(apiReady ? 'Откройте карту через бота в Телеграме' : 'Пример: сервер ещё не подключён');
     $('loading').classList.add('hidden');
     return;
