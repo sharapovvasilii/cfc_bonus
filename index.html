@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Coffee Cup Cafe</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="preload" href="fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Inter-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   @font-face { font-family: 'Inter'; font-weight: 400; font-style: normal; font-display: swap; src: url(fonts/Inter-Regular.woff2) format('woff2'); }
   @font-face { font-family: 'Inter'; font-weight: 600; font-style: normal; font-display: swap; src: url(fonts/Inter-SemiBold.woff2) format('woff2'); }
@@ -475,6 +477,7 @@
 
 <script>
 /* ===== Адрес сервера (Google Apps Script → Развернуть → URL веб-приложения) ===== */
+const APP_VERSION = '2026-11-14.2';
 const API_URL = 'https://script.google.com/macros/s/AKfycbx_WCCQXTPAEtkKRtG1jhv4Jm7Hqeb5D1EKeqi398vIlVUqTdTNg8FRDx4ojjaq1xA1/exec';
 
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -544,7 +547,37 @@ async function apiPost(body) {
   if (!data.ok) throw new Error(data.error || 'Ошибка сервера');
   return data;
 }
-function haptic(type) { try { tg.HapticFeedback.notificationOccurred(type); } catch (e) {} }
+/* ---------- вибрация телефона ---------- */
+// В Телеграме — через его вибро-отклик (работает и на iPhone), в обычном браузере на Android — navigator.vibrate
+function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+function haptic(type) { try { tg.HapticFeedback.notificationOccurred(type); } catch (e) { buzz(type === 'error' ? [30, 50, 30] : 18); } }
+const hap = {
+  light() { try { tg.HapticFeedback.impactOccurred('light'); } catch (e) { buzz(8); } },
+  medium() { try { tg.HapticFeedback.impactOccurred('medium'); } catch (e) { buzz(14); } },
+  tick() { try { tg.HapticFeedback.selectionChanged(); } catch (e) { buzz(4); } },
+};
+// Любое нажатие на кнопку, вкладку, карточку: лёгкий отклик, на главных кнопках — плотнее
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('button, .cartbar, .hero, [role="tab"]');
+  if (!b || b.disabled) return;
+  (b.matches('.btn, .buy, .cartbar') ? hap.medium : hap.light)();
+}, true);
+// Прокрутка: «щелчок» каждые ~140 px по вертикали и ~80 px по горизонтали (вкладки, добавки)
+const lastPos = new WeakMap();
+let lastTick = 0;
+document.addEventListener('scroll', e => {
+  const root = document.scrollingElement;
+  const el = e.target === document ? root : e.target;
+  if (!el || !el.clientWidth) return;
+  const horiz = el !== root && el.scrollWidth > el.clientWidth + 2;
+  const pos = horiz ? el.scrollLeft : el.scrollTop;
+  const prev = lastPos.get(el);
+  if (prev === undefined) { lastPos.set(el, pos); return; }
+  if (Math.abs(pos - prev) < (horiz ? 80 : 140)) return;
+  lastPos.set(el, pos);
+  const now = Date.now();
+  if (now - lastTick > 45) { lastTick = now; hap.tick(); }
+}, true);
 function plural(n, one, few, many) {
   const a = n % 100, b = n % 10;
   if (a >= 11 && a <= 14) return many;
@@ -613,6 +646,16 @@ function buildStamps() {
   box.appendChild(g);
 }
 
+function drawQr(code) {
+  $('qr').innerHTML = '';
+  if (!window.QRCode) { pendingQr = code; return; }
+  pendingQr = '';
+  new QRCode($('qr'), { text: 'cfc:' + code, width: 400, height: 400,
+    colorDark: '#111111', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+}
+let pendingQr = '';
+window.addEventListener('load', () => { if (pendingQr) drawQr(pendingQr); });
+
 let shownStamps = -1;
 function renderCard(card) {
   if (!card) return;
@@ -638,11 +681,7 @@ function renderCard(card) {
   if ($('code').dataset.code !== card.code) {
     $('code').dataset.code = card.code;
     $('code').textContent = card.code.slice(0, 3) + ' ' + card.code.slice(3);
-    $('qr').innerHTML = '';
-    if (window.QRCode) {
-      new QRCode($('qr'), { text: 'cfc:' + card.code, width: 400, height: 400,
-        colorDark: '#111111', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
-    }
+    drawQr(card.code);
   }
   if (shownStamps >= 0 && card.stamps > shownStamps) haptic('success');
   shownStamps = card.stamps;
@@ -1274,33 +1313,56 @@ async function start() {
     $('loading').classList.add('hidden');
     return;
   }
+  // Быстрый запуск: сразу показываем последний ответ сервера из памяти телефона, а свежий подтягиваем тихо
+  const uid = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
+  const key = 'cfc-init-v1:' + uid;
+  const cached = uid ? store.get(key, null) : null;
+  let shown = false;
+  if (cached && cached.d && cached.d.card && cached.d.menu) {
+    try { applyInit(cached.d, true); shown = true; $('loading').classList.add('hidden'); } catch (e) { shown = false; }
+  }
   try {
     const d = await apiGet({ action: 'init' });
-    state.role = d.role;
-    state.rules = d.rules || state.rules;
-    state.menu = d.menu || state.menu;
-    state.cfg = d.orderCfg || null;
-    $('needTxt').textContent = state.rules.need;
-    renderCard(d.card);
-    renderMenu();
-    setMyOrder(d.order);
-    showJoin(d.staffStatus);
-    $('ver').textContent = 'версия сервера ' + (d.ver || '—');
-    if (d.role !== 'guest') {
-      document.querySelectorAll('.staff-only').forEach(b => b.classList.remove('hidden'));
-      $('joinLink').classList.add('hidden');
-      renderToday(d.today);
-      renderOwner(d.stats);
-      if (d.role !== 'owner') $('acceptBtn').disabled = true;
-      showTab(store.get('cfc_tab', 'staff'));
-    } else {
-      showTab(orderActive() ? 'menu' : store.get('cfc_tab', 'card') === 'menu' ? 'menu' : 'card');
-    }
+    if (uid) store.set(key, { t: Date.now(), d: Object.assign({}, d, { order: null }) });
+    applyInit(d, false);
+    if (d.role !== 'guest') loadOrders();   // для сотрудника заранее готовим вкладку «Заказы»
     startPolling();
   } catch (e) {
-    $('status').innerHTML = 'Не удалось загрузить карту<small>' + esc(e.message) + '</small>';
+    if (!shown) $('status').innerHTML = 'Не удалось загрузить карту<small>' + esc(e.message) + '</small>';
+    else toast('Нет связи — показаны сохранённые данные', { error: true });
   }
   $('loading').classList.add('hidden');
+}
+
+let menuSig = '', tabChosen = false;
+// fromCache: true — данные из памяти телефона (заказ и «живые» сведения берём только из свежего ответа)
+function applyInit(d, fromCache) {
+  state.role = d.role;
+  state.rules = d.rules || state.rules;
+  state.cfg = d.orderCfg || state.cfg;
+  const sig = JSON.stringify(d.menu || {});
+  if (d.menu) state.menu = d.menu;
+  $('needTxt').textContent = state.rules.need;
+  renderCard(d.card);
+  if (sig !== menuSig) { menuSig = sig; renderMenu(); } else renderMenuBanner();
+  if (!fromCache) setMyOrder(d.order);
+  showJoin(d.staffStatus);
+  $('ver').textContent = 'версия ' + APP_VERSION + ' · сервер ' + (d.ver || '—') + (fromCache ? ' · из памяти' : '');
+  const staff = d.role !== 'guest';
+  document.querySelectorAll('.staff-only').forEach(b => b.classList.toggle('hidden', !staff));
+  if (staff) {
+    $('joinLink').classList.add('hidden');
+    renderToday(d.today);
+    renderOwner(d.stats);
+    $('acceptBtn').disabled = d.role !== 'owner';
+  }
+  if (!tabChosen) {
+    tabChosen = true;
+    const saved = store.get('cfc_tab', staff ? 'staff' : 'card');
+    showTab(staff ? saved : (orderActive() || saved === 'menu') ? 'menu' : 'card');
+  } else if (!fromCache && !staff && orderActive() && tab === 'card') {
+    showTab('menu');
+  }
 }
 start();
 </script>
