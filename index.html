@@ -266,8 +266,9 @@
   .phero .drink-photo { display: block; width: auto; max-width: calc(100% - 32px); height: 100%; max-height: 390px; object-fit: cover; border-radius: 22px; }
   .pdp.full-visual .phero { position: absolute; inset: 0; z-index: 0; display: block; overflow: hidden; padding: 0; pointer-events: none; }
   .pdp.full-visual .drink-photo { width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 0; }
-  /* Remove the black bands embedded in the video. */
-  .pdp.full-visual .drink-video { transform: scale(1.2); }
+  /* The 1280 px video contains a centered 1080 px picture with black bands. */
+  .pdp.full-visual .drink-video { position: absolute; top: -9.2593%; left: 0; height: 118.5185%; opacity: 0; }
+  .pdp.full-visual .drink-video.playing { opacity: 1; }
   .pdp.full-visual::before { z-index: 1; background: linear-gradient(180deg, #16100ce0, #16100c52 24%, transparent 40%, transparent 61%, #21130dd9 100%); }
   .pdp.full-visual .pfoot { margin-top: auto; }
   .pfoot { position: relative; z-index: 2; padding: 0 0 calc(14px + env(safe-area-inset-bottom)); }
@@ -491,7 +492,7 @@
 
 <script>
 /* ===== Адрес сервера (Google Apps Script → Развернуть → URL веб-приложения) ===== */
-const APP_VERSION = '2026-11-17.1';
+const APP_VERSION = '2026-11-17.2';
 const API_URL = 'https://script.google.com/macros/s/AKfycbx_WCCQXTPAEtkKRtG1jhv4Jm7Hqeb5D1EKeqi398vIlVUqTdTNg8FRDx4ojjaq1xA1/exec';
 
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -589,10 +590,14 @@ function drinkVisual(name, placement) {
     ' alt="" decoding="async"' + (placement === 'menu' ? ' loading="lazy"' : '') + ' data-drink-photo="' + esc(name) + '">';
 }
 
+document.addEventListener('playing', event => {
+  if (event.target.matches('.drink-video')) event.target.classList.add('playing');
+}, true);
+
 document.addEventListener('error', event => {
   const image = event.target;
-  if (image instanceof HTMLVideoElement && image.hasAttribute('data-drink-video')) {
-    image.outerHTML = drinkVisual(image.dataset.drinkVideo, 'detail');
+  if (image instanceof HTMLVideoElement && image.classList.contains('drink-video')) {
+    image.remove();
     return;
   }
   if (!(image instanceof HTMLImageElement)) return;
@@ -942,11 +947,11 @@ function openItem(it) {
   html += '<div class="pinfo">' + esc(it.desc || '') + (it.stamp ? '<div><span class="tag">за напиток — печать на карту</span></div>' : '') + '</div>';
   const showVideo = fullVisual &&
     !matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const visual = showVideo
+  const video = showVideo
     ? '<video class="drink-photo drink-video" autoplay playsinline muted aria-hidden="true"' +
-      ' poster="menu-images/drinks/iced-latte.webp" src="menu-images/drinks/iced-latte.mp4" data-drink-video="' + esc(it.name) + '"></video>'
-    : drinkVisual(it.name, 'detail');
-  html += '<div class="phero">' + visual + '</div>';
+      ' src="menu-images/drinks/iced-latte.mp4"></video>'
+    : '';
+  html += '<div class="phero">' + drinkVisual(it.name, 'detail') + video + '</div>';
   html += '<div class="pfoot">';
   if (!canOrder()) html += '<div class="off">Предзаказ сейчас не работает.</div>';
   html += '<div class="agrid hidden" id="aGrid"></div>';
