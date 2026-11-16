@@ -264,6 +264,7 @@
   .phero { position: relative; z-index: 1; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 8px 0; }
   .phero svg { height: 100%; max-height: 360px; width: auto; filter: drop-shadow(0 28px 34px rgba(0,0,0,.4)); }
   .phero .drink-photo { display: block; width: auto; max-width: calc(100% - 32px); height: 100%; max-height: 390px; object-fit: cover; border-radius: 22px; }
+  .phero .drink-video { aspect-ratio: 2 / 3; }
   .pfoot { position: relative; z-index: 2; padding: 0 0 calc(14px + env(safe-area-inset-bottom)); }
   .agrid { display: grid; grid-auto-flow: column; grid-template-rows: auto auto; grid-auto-columns: 118px; gap: 10px; overflow-x: auto; padding: 0 16px 14px; scrollbar-width: none; justify-content: safe center; }
   .agrid::-webkit-scrollbar { display: none; }
@@ -485,7 +486,7 @@
 
 <script>
 /* ===== Адрес сервера (Google Apps Script → Развернуть → URL веб-приложения) ===== */
-const APP_VERSION = '2026-11-16.1';
+const APP_VERSION = '2026-11-16.2';
 const API_URL = 'https://script.google.com/macros/s/AKfycbx_WCCQXTPAEtkKRtG1jhv4Jm7Hqeb5D1EKeqi398vIlVUqTdTNg8FRDx4ojjaq1xA1/exec';
 
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -585,6 +586,10 @@ function drinkVisual(name, placement) {
 
 document.addEventListener('error', event => {
   const image = event.target;
+  if (image instanceof HTMLVideoElement && image.hasAttribute('data-drink-video')) {
+    image.outerHTML = drinkVisual(image.dataset.drinkVideo, 'detail');
+    return;
+  }
   if (!(image instanceof HTMLImageElement)) return;
   if (image.hasAttribute('data-drink-photo')) {
     const hero = image.closest('.hero');
@@ -890,6 +895,7 @@ function openSheet(html, opts) {
   try { if (tg && tg.BackButton) { tg.BackButton.show(); tg.BackButton.onClick(closeSheet); } } catch (e) {}
 }
 function closeSheet() {
+  $('sheet').querySelector('.drink-video')?.pause();
   $('shade').classList.add('hidden');
   $('shade').classList.remove('fullmode');
   document.body.classList.remove('lock');
@@ -928,7 +934,13 @@ function openItem(it) {
   let html = '<div class="pdp"><div class="ptop"><button class="rbtn" id="pBack" aria-label="Назад">' + BACK_SVG + '</button>' +
     '<div class="ptitle">' + esc(it.name) + '</div><span class="rbtn" style="visibility:hidden"></span></div>';
   html += '<div class="pinfo">' + esc(it.desc || '') + (it.stamp ? '<div><span class="tag">за напиток — печать на карту</span></div>' : '') + '</div>';
-  html += '<div class="phero">' + drinkVisual(it.name, 'detail') + '</div>';
+  const showVideo = DRINK_PHOTOS.get(imageKey(it.name)) === 'iced-latte' &&
+    !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const visual = showVideo
+    ? '<video class="drink-photo drink-video" autoplay playsinline muted aria-hidden="true"' +
+      ' poster="menu-images/drinks/iced-latte.webp" src="menu-images/drinks/iced-latte.mp4" data-drink-video="' + esc(it.name) + '"></video>'
+    : drinkVisual(it.name, 'detail');
+  html += '<div class="phero">' + visual + '</div>';
   html += '<div class="pfoot">';
   if (!canOrder()) html += '<div class="off">Предзаказ сейчас не работает.</div>';
   html += '<div class="agrid hidden" id="aGrid"></div>';
