@@ -13,9 +13,11 @@
   @font-face { font-family: 'Inter'; font-weight: 600; font-style: normal; font-display: swap; src: url(fonts/Inter-SemiBold.woff2) format('woff2'); }
   @font-face { font-family: 'Inter'; font-weight: 800; font-style: normal; font-display: swap; src: url(fonts/Inter-ExtraBold.woff2) format('woff2'); }
   :root {
-    --accent: #3449d9;
-    --accent-dark: #2a3bb8;
-    --accent-soft: rgba(52, 73, 217, .16);
+    --brand: #e5372d;
+    --brand-rgb: 229, 55, 45;
+    --accent: #d82d24;
+    --accent-dark: #b7261e;
+    --accent-soft: rgba(var(--brand-rgb), .16);
     --ink: #ffffff;
     --muted: #8b93a3;
     --bg: #161a24;
@@ -47,9 +49,8 @@
   .stage { position: relative; }
   .stage.nohero { height: 84px; }
   .top { position: absolute; top: 0; left: 0; right: 0; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 22px 16px 0; }
-  .top img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; background: #fff; }
+  .top img { width: 80px; height: 51px; object-fit: contain; flex: 0 0 auto; filter: invert(1); }
   .top .ttl { flex: 1; min-width: 0; }
-  .top .ttl b { display: block; font-size: 20px; font-weight: 500; letter-spacing: -.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .top .ttl span { font-size: 15px; color: rgba(255,255,255,.62); }
   .rbtn { flex: 0 0 auto; width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,.14); backdrop-filter: blur(10px);
     display: flex; align-items: center; justify-content: center; border: 1.5px solid rgba(255,255,255,.18); }
@@ -83,7 +84,7 @@
   /* ---------- карта гостя ---------- */
   .loyalty { background: var(--card); border-radius: 32px; padding: 26px 22px 24px; margin-top: 18px; position: relative; overflow: hidden; }
   .loyalty::before { content: ''; position: absolute; width: 300px; height: 300px; right: -120px; top: -150px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(52,73,217,.55), rgba(52,73,217,0) 70%); pointer-events: none; }
+    background: radial-gradient(circle, rgba(var(--brand-rgb),.55), rgba(var(--brand-rgb),0) 70%); pointer-events: none; }
   .brand { margin: 0 0 4px; font-size: 32px; font-weight: 500; letter-spacing: -1px; line-height: 1.05; text-transform: lowercase; position: relative; }
   .brand + p { margin: 0 0 22px; color: var(--muted); font-size: 15px; position: relative; }
   .stamps { display: flex; gap: 8px; align-items: center; position: relative; }
@@ -99,7 +100,7 @@
   .dot.gift { background: transparent; border: 2px dashed #3c4354; color: #8b93a3; }
   .dot.gift svg { width: 54%; height: 54%; }
   .dot.gift.ready { background: var(--accent); border-color: var(--accent); color: #fff; animation: pulse 1.6s ease-in-out infinite; }
-  @keyframes pulse { 50% { transform: scale(1.08); box-shadow: 0 0 0 9px rgba(52,73,217,.28); } }
+  @keyframes pulse { 50% { transform: scale(1.08); box-shadow: 0 0 0 9px rgba(var(--brand-rgb),.28); } }
   .status { margin-top: 22px; font-weight: 500; font-size: 22px; letter-spacing: -.4px; position: relative; }
   .status small { display: block; font-weight: 400; font-size: 14px; color: var(--muted); margin-top: 4px; letter-spacing: 0; }
 
@@ -154,7 +155,7 @@
   .mini i.g.on { background: #fff; }
   .guest-sum { font-size: 15px; color: var(--muted); }
   .guest-sum b { color: #fff; }
-  .gift-box { background: var(--accent-soft); border: 1.5px solid rgba(52,73,217,.55); border-radius: 24px; padding: 16px; margin-top: 16px; }
+  .gift-box { background: var(--accent-soft); border: 1.5px solid rgba(var(--brand-rgb),.55); border-radius: 24px; padding: 16px; margin-top: 16px; }
   .gift-box h4 { margin: 0 0 4px; font-size: 18px; font-weight: 500; }
   .gift-box p { margin: 0 0 12px; font-size: 13px; color: #c3c8d4; }
   .gift-box .row { margin-top: 0; }
@@ -188,7 +189,7 @@
   .item.wide .col { flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 14px 0 4px; }
   .item.wide .nm { font-size: 22px; flex: 0; }
   .item.wide .ds { font-size: 14px; color: var(--muted); margin-top: 6px; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .banner { background: var(--accent-soft); border: 1px solid rgba(52,73,217,.4); border-radius: 22px; padding: 14px 16px; font-size: 14.5px; margin: 14px 0 6px; color: #dfe3f3; }
+  .banner { background: var(--accent-soft); border: 1px solid rgba(var(--brand-rgb),.4); border-radius: 22px; padding: 14px 16px; font-size: 14.5px; margin: 14px 0 6px; color: #dfe3f3; }
 
   .myorder { background: var(--accent); color: #fff; border-radius: 30px; padding: 20px; margin: 16px 0 6px; }
   .myorder .top { position: static; display: flex; justify-content: space-between; align-items: center; padding: 0; }
@@ -296,7 +297,7 @@
   .sg small { font-size: 12px; margin-top: -2px; }
   .sg[aria-pressed="true"] { background: #fff; color: #111; font-size: 26px; font-weight: 500; }
   .sg:not([aria-pressed="true"]) small { display: none; }
-  .buy { flex: 1; height: 72px; border-radius: 36px; background: var(--accent); color: #fff; font-size: 26px; font-weight: 400; letter-spacing: -.5px; }
+  .buy { flex: 1; height: 72px; border-radius: 36px; background: var(--brand); color: #fff; font-size: 26px; font-weight: 400; letter-spacing: -.5px; }
   .buy:active { background: var(--accent-dark); }
   .buy[disabled] { opacity: .5; }
   .pdp .off { position: relative; z-index: 2; margin: 0 16px 10px; text-align: center; font-size: 14px; background: rgba(0,0,0,.4); border-radius: 18px; padding: 12px; }
@@ -311,7 +312,7 @@
   .ogrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
   .ocard { background: var(--card); border-radius: 28px; padding: 18px; display: flex; flex-direction: column; border: 3px solid transparent; }
   .ocard.new { border-color: var(--accent); animation: glow 1.4s ease-in-out infinite; }
-  @keyframes glow { 50% { box-shadow: 0 0 0 6px rgba(52,73,217,.28); } }
+  @keyframes glow { 50% { box-shadow: 0 0 0 6px rgba(var(--brand-rgb),.28); } }
   .ocard.ready { border-color: var(--ok); }
   .ocard .top { position: static; padding: 0; display: flex; align-items: center; gap: 8px; }
   .ocard .no { font-size: 32px; font-weight: 500; }
@@ -342,20 +343,19 @@
 
   #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 14px; z-index: 80; }
-  #loading img { width: 110px; height: 110px; border-radius: 50%; animation: spin 6s linear infinite; }
+  #loading img { width: 140px; height: auto; filter: invert(1); }
   #loading div { color: var(--muted); font-size: 15px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
   .ver { text-align: center; color: #4a5060; font-size: 11px; margin-top: 22px; }
 </style>
 </head>
 <body>
 
-<div id="loading"><img src="logo.png" alt=""><div>Загружаем…</div></div>
+<div id="loading"><img src="logo.png?v=2" alt="" width="591" height="375"><div>Загружаем…</div></div>
 
 <div class="stage nohero" id="stage">
   <header class="top">
-    <img src="logo.png" alt="">
-    <div class="ttl"><b>Coffee Cup Cafe</b><span id="hours">кофейня</span></div>
+    <img src="logo.png?v=2" alt="Coffee Cup Cafe" width="591" height="375">
+    <div class="ttl"><span id="hours">кофейня</span></div>
     <button class="rbtn" id="profileBtn" aria-label="Моя карта">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
     </button>
@@ -492,7 +492,7 @@
 
 <script>
 /* ===== Адрес сервера (Google Apps Script → Развернуть → URL веб-приложения) ===== */
-const APP_VERSION = '2026-11-17.3';
+const APP_VERSION = '2026-11-17.4';
 const API_URL = 'https://script.google.com/macros/s/AKfycbx_WCCQXTPAEtkKRtG1jhv4Jm7Hqeb5D1EKeqi398vIlVUqTdTNg8FRDx4ojjaq1xA1/exec';
 
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
