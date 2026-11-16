@@ -58,6 +58,8 @@
   .hero { position: relative; height: 430px; overflow: hidden; cursor: pointer; text-align: center; }
   .hero .hcup { position: absolute; left: 50%; top: 92px; width: 190px; transform: translateX(-50%); animation: float 5s ease-in-out infinite; filter: drop-shadow(0 24px 30px rgba(0,0,0,.35)); }
   .hero .hcup svg { width: 100%; display: block; }
+  .hero.has-photo .hcup { inset: 0; width: 100%; transform: none; animation: none; filter: none; }
+  .hero .drink-photo { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 58%; }
   @keyframes float { 50% { transform: translateX(-50%) translateY(-10px); } }
   .hero::after { content: ''; position: absolute; inset: auto 0 0 0; height: 220px; background: linear-gradient(to bottom, rgba(22,26,36,0), var(--bar)); }
   .hero .hinfo { position: absolute; left: 16px; right: 16px; bottom: 46px; z-index: 2; }
@@ -174,13 +176,15 @@
   .item { display: flex; flex-direction: column; background: var(--card); border-radius: 28px; padding: 14px 16px 16px; width: 100%; text-align: left; position: relative; min-width: 0; }
   .item .pic { height: 150px; display: flex; align-items: center; justify-content: center; margin: 0 0 8px; }
   .item .pic svg { height: 100%; width: auto; max-width: 100%; }
+  .item .pic .drink-photo { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 17px; }
+  .item .incart { z-index: 1; }
   .item .nm { font-weight: 400; font-size: 19px; line-height: 1.22; letter-spacing: -.3px; flex: 1; padding-top: 4px; }
   .item .pr { display: flex; align-items: center; justify-content: space-between; font-size: 17px; margin-top: 14px; }
   .item .pr .go { width: 20px; height: 20px; color: #5c6373; }
   .item .pr small { color: var(--muted); font-size: 14px; margin-right: 4px; }
   .item .incart { position: absolute; top: 12px; right: 12px; min-width: 28px; height: 28px; border-radius: 14px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; line-height: 28px; text-align: center; padding: 0 8px; }
   .item.wide { grid-column: 1 / -1; flex-direction: row; align-items: stretch; gap: 14px; padding: 12px 20px 14px 14px; }
-  .item.wide .pic { flex: 0 0 38%; height: 170px; margin: 0; }
+  .item.wide .pic { flex: 0 0 38%; height: 170px; margin: 0; min-width: 0; }
   .item.wide .col { flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 14px 0 4px; }
   .item.wide .nm { font-size: 22px; flex: 0; }
   .item.wide .ds { font-size: 14px; color: var(--muted); margin-top: 6px; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -205,6 +209,7 @@
   .cartbar .ct b { font-size: 26px; font-weight: 500; letter-spacing: -.5px; }
   .cartbar .cthumb { position: relative; flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; }
   .cartbar .cthumb svg { height: 44px; width: auto; }
+  .cartbar .cthumb .drink-photo { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
   .cartbar .cthumb i { position: absolute; top: -2px; right: -2px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--accent); font-style: normal; font-size: 12px; font-weight: 700; line-height: 22px; text-align: center; padding: 0 5px; }
 
   /* ---------- шторка ---------- */
@@ -234,6 +239,7 @@
   .cline { display: flex; gap: 14px; align-items: center; background: var(--card); border-radius: 28px; padding: 14px 16px; margin-bottom: 10px; }
   .cline .cpic { flex: 0 0 64px; height: 84px; display: flex; align-items: center; justify-content: center; }
   .cline .cpic svg { height: 100%; width: auto; }
+  .cline .cpic .drink-photo { width: 64px; height: 76px; object-fit: cover; border-radius: 14px; }
   .cline .t { flex: 1; min-width: 0; font-size: 18px; }
   .cline .t em { display: block; font-style: normal; font-size: 14px; color: var(--muted); }
   .cline .t small { color: var(--muted); display: block; font-size: 13px; line-height: 1.3; }
@@ -257,6 +263,7 @@
   .pinfo .tag { display: inline-block; margin-top: 8px; padding: 5px 12px; border-radius: 14px; background: var(--accent); font-size: 13px; color: #fff; }
   .phero { position: relative; z-index: 1; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 8px 0; }
   .phero svg { height: 100%; max-height: 360px; width: auto; filter: drop-shadow(0 28px 34px rgba(0,0,0,.4)); }
+  .phero .drink-photo { display: block; width: auto; max-width: calc(100% - 32px); height: 100%; max-height: 390px; object-fit: cover; border-radius: 22px; }
   .pfoot { position: relative; z-index: 2; padding: 0 0 calc(14px + env(safe-area-inset-bottom)); }
   .agrid { display: grid; grid-auto-flow: column; grid-template-rows: auto auto; grid-auto-columns: 118px; gap: 10px; overflow-x: auto; padding: 0 16px 14px; scrollbar-width: none; justify-content: safe center; }
   .agrid::-webkit-scrollbar { display: none; }
@@ -264,6 +271,7 @@
   .atile { background: rgba(120,100,90,.55); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 28px; padding: 10px 8px 8px; min-height: 124px;
     display: flex; flex-direction: column; align-items: center; text-align: center; font-size: 14.5px; line-height: 1.2; }
   .atile .ic { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; color: rgba(255,255,255,.95); margin-bottom: 8px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.25); }
+  .atile .addon-photo { display: block; flex: 0 0 auto; width: 44px; height: 44px; object-fit: contain; margin-bottom: 8px; }
   .atile small { display: block; color: rgba(255,255,255,.6); margin-top: 4px; font-size: 13px; }
   .atile .pm { margin-top: auto; font-size: 22px; line-height: 1; opacity: .9; }
   .atile[aria-pressed="true"] { background: #fff; color: #111; }
@@ -477,7 +485,7 @@
 
 <script>
 /* ===== Адрес сервера (Google Apps Script → Развернуть → URL веб-приложения) ===== */
-const APP_VERSION = '2026-11-14.2';
+const APP_VERSION = '2026-11-16.1';
 const API_URL = 'https://script.google.com/macros/s/AKfycbx_WCCQXTPAEtkKRtG1jhv4Jm7Hqeb5D1EKeqi398vIlVUqTdTNg8FRDx4ojjaq1xA1/exec';
 
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -489,7 +497,7 @@ const TRASH_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6l
 const PERSON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg>';
 const MENU_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
 
-/* Рисованный стакан: цвета зависят от названия напитка (фото напитков пока нет) */
+/* Цвет фона и рисунок для напитков без фотографии. */
 function drinkLook(name) {
   const n = String(name || '').toLowerCase();
   if (/американо|эспрессо|чёрн|черн|фильтр|ристретто/.test(n)) return { liq: '#2b150a', foam: '#c8905a', bg: '#4a2417', cap: 'foam' };
@@ -510,6 +518,83 @@ function cupSvg(name) {
     '<ellipse cx="50" cy="14" rx="28" ry="3.800" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.400"/>' +
     '<path d="M30 26L33 120" stroke="rgba(255,255,255,.35)" stroke-width="2.400" stroke-linecap="round"/></svg>';
 }
+const DRINK_PHOTOS = new Map([
+  ["эспрессо", "espresso"],
+  ["американо", "americano"],
+  ["латте", "latte"],
+  ["капучино", "cappuccino"],
+  ["какао", "cocoa"],
+  ["раф кофе", "raf"],
+  ["мокко", "mocha"],
+  ["флэт уайт", "flat-white"],
+  ["айс капучино", "iced-cappuccino"],
+  ["айс американо", "iced-americano"],
+  ["айс латте", "iced-latte"],
+  ["манго маракуйя", "mango-passionfruit"],
+  ["манго милк", "mango-milk"],
+  ["вита твист", "vita-twist"],
+  ["ягодный микс", "berry-mix"],
+  ["молочный улун", "milk-oolong"],
+  ["чабрец", "thyme-tea"],
+  ["английский завтрак", "thyme-tea"],
+  ["сенча", "milk-oolong"],
+  ["дыня карамель", "milk-oolong"],
+  ["лесные ягоды", "thyme-tea"],
+  ["фруктовая смесь", "thyme-tea"],
+  ["апельсин со специями", "thyme-tea"],
+]);
+
+const ADDON_PHOTOS = new Map([
+  ["молоко", "milk"],
+  ["миндальное молоко", "almond-milk"],
+  ["кокосовое молоко", "coconut-milk"],
+  ["сливки", "cream"],
+  ["посыпки", "toppings"],
+  ["коровье молоко", "milk"],
+  ["молоко коровье", "milk"],
+  ["взбитые сливки", "cream"],
+  ["посыпка", "toppings"],
+  ["сироп карамель", "syrup-caramel"],
+  ["сироп шоколад", "syrup-chocolate"],
+  ["сироп амаретто", "syrup-amaretto"],
+  ["сироп мед", "syrup-honey"],
+  ["сироп лесной орех", "syrup-hazelnut"],
+  ["сироп ваниль", "syrup-vanilla"],
+  ["сироп фисташка", "syrup-pistachio"],
+  ["сироп кокос", "syrup-coconut"],
+  ["сироп дыня", "syrup-melon"],
+  ["сироп имбирный пряник", "syrup-gingerbread"],
+  ["сироп ежевика", "syrup-blackberry"],
+  ["сироп соленая карамель", "syrup-salted-caramel"],
+  ["сироп банан", "syrup-banana"],
+  ["сироп манго", "syrup-mango"],
+  ["сироп мята", "syrup-mint"],
+]);
+
+function imageKey(name) {
+  return String(name || '').normalize('NFC').toLowerCase().replace(/ё/g, 'е').replace(/[\s‐‑‒–—−-]+/g, ' ').trim();
+}
+function drinkVisual(name, placement) {
+  const file = DRINK_PHOTOS.get(imageKey(name));
+  if (!file) return cupSvg(name);
+  const large = placement === 'hero' || placement === 'detail';
+  const dimensions = large ? 'width="720" height="1080"' : 'width="320" height="320"';
+  return '<img class="drink-photo" src="menu-images/drinks/' + file + (large ? '' : '-thumb') + '.webp" ' + dimensions +
+    ' alt="" decoding="async"' + (placement === 'menu' ? ' loading="lazy"' : '') + ' data-drink-photo="' + esc(name) + '">';
+}
+
+document.addEventListener('error', event => {
+  const image = event.target;
+  if (!(image instanceof HTMLImageElement)) return;
+  if (image.hasAttribute('data-drink-photo')) {
+    const hero = image.closest('.hero');
+    if (hero) hero.classList.remove('has-photo');
+    image.outerHTML = cupSvg(image.dataset.drinkPhoto);
+  } else if (image.hasAttribute('data-addon-photo')) {
+    image.outerHTML = addonInitial(image.dataset.addonPhoto);
+  }
+}, true);
+
 const ST_TEXT = { 'новый': 'Ждёт подтверждения', 'готовится': 'Готовим', 'готов': 'Готов!', 'выдан': 'Выдан', 'отменён': 'Отменён' };
 
 const tg = window.Telegram && window.Telegram.WebApp;
@@ -725,10 +810,11 @@ function priceFrom(it) {
 }
 function renderHero() {
   const it = state.menu.items[0];
+  $('hero').classList.toggle('has-photo', !!it && DRINK_PHOTOS.has(imageKey(it.name)));
   if (!it) { $('hero').innerHTML = ''; return; }
   const c = drinkLook(it.name);
   $('hero').style.background = 'radial-gradient(120% 80% at 50% 38%, ' + c.bg + ', #12151d 80%)';
-  $('hero').innerHTML = '<div class="hcup">' + cupSvg(it.name) + '</div><div class="hinfo"><div class="hname">' + esc(it.name) +
+  $('hero').innerHTML = '<div class="hcup">' + drinkVisual(it.name, 'hero') + '</div><div class="hinfo"><div class="hname">' + esc(it.name) +
     '</div><div class="hprice">' + priceFrom(it) + '</div></div>';
   $('hero').onclick = () => openItem(it);
 }
@@ -749,11 +835,11 @@ function renderMenu() {
       const wide = j === 0 && list.length % 2 === 1;
       const badge = n ? '<span class="incart">' + n + '</span>' : '';
       if (wide) {
-        html += '<button class="item wide" data-k="' + k + '">' + badge + '<div class="pic">' + cupSvg(it.name) + '</div><div class="col"><div class="nm">' + esc(it.name) + '</div>' +
+        html += '<button class="item wide" data-k="' + k + '">' + badge + '<div class="pic">' + drinkVisual(it.name, 'menu') + '</div><div class="col"><div class="nm">' + esc(it.name) + '</div>' +
           (it.desc ? '<div class="ds">' + esc(it.desc) + '</div>' : '<div class="ds"></div>') +
           '<div class="pr"><span>' + priceFrom(it) + '</span>' + GO_SVG + '</div></div></button>';
       } else {
-        html += '<button class="item" data-k="' + k + '">' + badge + '<div class="pic">' + cupSvg(it.name) + '</div><div class="nm">' + esc(it.name) +
+        html += '<button class="item" data-k="' + k + '">' + badge + '<div class="pic">' + drinkVisual(it.name, 'menu') + '</div><div class="nm">' + esc(it.name) +
           '</div><div class="pr"><span>' + priceFrom(it) + '</span>' + GO_SVG + '</div></button>';
       }
     });
@@ -816,6 +902,17 @@ const SZ_LETTERS = ['S', 'M', 'L', 'XL', 'XXL'];
 const ADDON_HUES = [18, 32, 48, 140, 200, 265, 320, 350];
 function addonHue(name) { let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return ADDON_HUES[h % ADDON_HUES.length]; }
 
+function addonInitial(name) {
+  const initial = name.replace(/^(сироп|соус)\s+/i, '').charAt(0).toUpperCase();
+  return '<span class="ic" aria-hidden="true" style="background:hsl(' + addonHue(name) + ' 45% 38%)">' + esc(initial) + '</span>';
+}
+function addonVisual(name) {
+  const file = ADDON_PHOTOS.get(imageKey(name));
+  if (!file) return addonInitial(name);
+  return '<img class="addon-photo" src="menu-images/addons/' + file + '.webp" alt="" width="44" height="44"' +
+    ' decoding="async" loading="lazy" data-addon-photo="' + esc(name) + '">';
+}
+
 function openItem(it) {
   let size = it.sizes[0].size, openGroup = '';
   const adds = new Set();
@@ -831,7 +928,7 @@ function openItem(it) {
   let html = '<div class="pdp"><div class="ptop"><button class="rbtn" id="pBack" aria-label="Назад">' + BACK_SVG + '</button>' +
     '<div class="ptitle">' + esc(it.name) + '</div><span class="rbtn" style="visibility:hidden"></span></div>';
   html += '<div class="pinfo">' + esc(it.desc || '') + (it.stamp ? '<div><span class="tag">за напиток — печать на карту</span></div>' : '') + '</div>';
-  html += '<div class="phero">' + cupSvg(it.name) + '</div>';
+  html += '<div class="phero">' + drinkVisual(it.name, 'detail') + '</div>';
   html += '<div class="pfoot">';
   if (!canOrder()) html += '<div class="off">Предзаказ сейчас не работает.</div>';
   html += '<div class="agrid hidden" id="aGrid"></div>';
@@ -848,7 +945,7 @@ function openItem(it) {
   $('pBack').onclick = closeSheet;
 
   const gridFor = g => '<div class="agrid" id="aGrid" style="grid-template-rows:repeat(' + (groups[g].length > 3 ? 2 : 1) + ',auto)">' + groups[g].map(a => '<button class="atile" data-a="' + esc(a.name) + '">' +
-    '<span class="ic" style="background:hsl(' + addonHue(a.name) + ' 45% 38%)">' + esc(a.name.replace(/^Сироп |^Соус /, '').charAt(0).toUpperCase()) + '</span>' +
+    addonVisual(a.name) +
     esc(a.name.replace(/^Сироп /, '')) + '<small>' + (a.price ? '+' + rub(a.price) : '0 ₽') + '</small><span class="pm">+</span></button>').join('') + '</div>';
   const refresh = () => {
     $('sheet').querySelectorAll('[data-s]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === size)));
@@ -902,7 +999,7 @@ function renderCartBar() {
   $('cartBar').classList.toggle('hidden', !show);
   $('cartTxt').textContent = rub(cartTotal());
   $('cartSub').textContent = n + ' ' + plural(n, 'напиток', 'напитка', 'напитков') + ' · ' + prepMin() + ' мин';
-  $('cartThumb').innerHTML = cart.length ? cupSvg(cart[cart.length - 1].name) + '<i>' + n + '</i>' : '';
+  $('cartThumb').innerHTML = cart.length ? drinkVisual(cart[cart.length - 1].name) + '<i>' + n + '</i>' : '';
 }
 $('cartBar').onclick = openCart;
 
@@ -928,7 +1025,7 @@ function openCart() {
   let html = '<div class="chead"><button class="rbtn trash" id="cClear" aria-label="Очистить">' + TRASH_SVG + '</button>' +
     '<div class="cttl">Ваш заказ</div><button class="rbtn" id="cX" aria-label="Закрыть">' + CLOSE_SVG + '</button></div>';
   html += '<div class="cpill">приготовим за ~' + prepMin() + ' мин</div>';
-  html += cart.map((c, i) => '<div class="cline"><div class="cpic">' + cupSvg(c.name) + '</div><div class="t">' +
+  html += cart.map((c, i) => '<div class="cline"><div class="cpic">' + drinkVisual(c.name) + '</div><div class="t">' +
     (c.size ? '<em>' + esc(c.size) + '</em>' : '') + esc(c.name) +
     (c.addons.length ? '<small>+ ' + esc(c.addons.join(', ').toLowerCase()) + '</small>' : '') +
     '<span class="pp">' + rub(c.price * c.qty) + '</span></div>' +
