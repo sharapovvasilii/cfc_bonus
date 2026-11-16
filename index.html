@@ -492,7 +492,7 @@
 
 <script>
 /* ===== Адрес сервера (Google Apps Script → Развернуть → URL веб-приложения) ===== */
-const APP_VERSION = '2026-11-17.2';
+const APP_VERSION = '2026-11-17.3';
 const API_URL = 'https://script.google.com/macros/s/AKfycbx_WCCQXTPAEtkKRtG1jhv4Jm7Hqeb5D1EKeqi398vIlVUqTdTNg8FRDx4ojjaq1xA1/exec';
 
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -588,6 +588,32 @@ function drinkVisual(name, placement) {
   const dimensions = large ? 'width="720" height="1080"' : 'width="320" height="320"';
   return '<img class="drink-photo" src="menu-images/drinks/' + file + (large ? '' : '-thumb') + '.webp" ' + dimensions +
     ' alt="" decoding="async"' + (placement === 'menu' ? ' loading="lazy"' : '') + ' data-drink-photo="' + esc(name) + '">';
+}
+
+const DRINK_VIDEOS = new Map([
+  ['iced-latte', 'menu-images/drinks/iced-latte.mp4?v=2'],
+]);
+const drinkVideoPlayers = new Map();
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+function prepareDrinkVideo(file) {
+  if (reducedMotion.matches || !DRINK_VIDEOS.has(file)) return;
+  const cached = drinkVideoPlayers.get(file);
+  if (cached && !cached.error) return cached;
+  const video = document.createElement('video');
+  video.className = 'drink-photo drink-video';
+  video.preload = 'auto';
+  video.muted = true;
+  video.playsInline = true;
+  video.loop = true;
+  video.setAttribute('aria-hidden', 'true');
+  video.src = DRINK_VIDEOS.get(file);
+  drinkVideoPlayers.set(file, video);
+  return video;
+}
+
+function preloadMenuVideos() {
+  state.menu.items.forEach(it => prepareDrinkVideo(DRINK_PHOTOS.get(imageKey(it.name))));
 }
 
 document.addEventListener('playing', event => {
@@ -713,6 +739,7 @@ function showTab(name) {
   document.body.classList.toggle('wide', name === 'orders');
   store.set('cfc_tab', name);
   const isMenu = name === 'menu';
+  if (isMenu) preloadMenuVideos();
   $('secs').classList.toggle('hidden', !isMenu || !$('secs').children.length);
   $('hero').classList.toggle('hidden', !isMenu || !$('hero').innerHTML);
   $('stage').classList.toggle('nohero', $('hero').classList.contains('hidden'));
@@ -864,6 +891,7 @@ function renderMenu() {
   $('menuList').querySelectorAll('.item').forEach(b => b.onclick = () => openItem(state.menu.items[+b.dataset.k]));
   renderHero();
   if (tab === 'menu') { $('secs').classList.toggle('hidden', !secs.length); $('hero').classList.toggle('hidden', !$('hero').innerHTML); $('stage').classList.toggle('nohero', !$('hero').innerHTML); fitNav(); }
+  if (tab === 'menu') preloadMenuVideos();
   renderMenuBanner();
   markSection();
 }
@@ -905,7 +933,12 @@ function openSheet(html, opts) {
   try { if (tg && tg.BackButton) { tg.BackButton.show(); tg.BackButton.onClick(closeSheet); } } catch (e) {}
 }
 function closeSheet() {
-  $('sheet').querySelector('.drink-video')?.pause();
+  const video = $('sheet').querySelector('.drink-video');
+  if (video) {
+    video.pause();
+    video.currentTime = 0;
+    video.classList.remove('playing');
+  }
   $('shade').classList.add('hidden');
   $('shade').classList.remove('fullmode');
   document.body.classList.remove('lock');
@@ -941,17 +974,12 @@ function openItem(it) {
     return s + state.menu.addons.filter(a => adds.has(a.name)).reduce((t, a) => t + a.price, 0);
   };
   const multi = it.sizes.length > 1;
-  const fullVisual = DRINK_PHOTOS.get(imageKey(it.name)) === 'iced-latte';
+  const file = DRINK_PHOTOS.get(imageKey(it.name));
+  const fullVisual = DRINK_VIDEOS.has(file);
   let html = '<div class="pdp' + (fullVisual ? ' full-visual' : '') + '"><div class="ptop"><button class="rbtn" id="pBack" aria-label="Назад">' + BACK_SVG + '</button>' +
     '<div class="ptitle">' + esc(it.name) + '</div><span class="rbtn" style="visibility:hidden"></span></div>';
   html += '<div class="pinfo">' + esc(it.desc || '') + (it.stamp ? '<div><span class="tag">за напиток — печать на карту</span></div>' : '') + '</div>';
-  const showVideo = fullVisual &&
-    !matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const video = showVideo
-    ? '<video class="drink-photo drink-video" autoplay playsinline muted aria-hidden="true"' +
-      ' src="menu-images/drinks/iced-latte.mp4"></video>'
-    : '';
-  html += '<div class="phero">' + drinkVisual(it.name, 'detail') + video + '</div>';
+  html += '<div class="phero">' + drinkVisual(it.name, 'detail') + '</div>';
   html += '<div class="pfoot">';
   if (!canOrder()) html += '<div class="off">Предзаказ сейчас не работает.</div>';
   html += '<div class="agrid hidden" id="aGrid"></div>';
@@ -966,6 +994,11 @@ function openItem(it) {
   html += '<button class="buy" id="iAdd"' + (canOrder() ? '' : ' disabled') + '></button></div></div></div>';
   openSheet(html, { full: true, bg: 'linear-gradient(180deg, ' + look.bg + ' 0%, #b88f6c 62%, #3a2a22 100%)' });
   $('pBack').onclick = closeSheet;
+  const video = prepareDrinkVideo(file);
+  if (video) {
+    $('sheet').querySelector('.phero').append(video);
+    video.play().catch(() => {});
+  }
 
   const gridFor = g => '<div class="agrid" id="aGrid" style="grid-template-rows:repeat(' + (groups[g].length > 3 ? 2 : 1) + ',auto)">' + groups[g].map(a => '<button class="atile" data-a="' + esc(a.name) + '">' +
     addonVisual(a.name) +
