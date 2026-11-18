@@ -218,7 +218,7 @@
   .shade.fullmode { background: #000; align-items: stretch; }
   .sheet { background: var(--bg); width: 100%; max-width: 480px; border-radius: 36px 36px 0 0; padding: 20px 16px calc(18px + env(safe-area-inset-bottom));
     max-height: 92vh; overflow-y: auto; animation: up .22s ease-out; }
-  .sheet.full { max-height: none; height: 100%; border-radius: 0; padding: 0; overflow: hidden; }
+  .sheet.full { max-height: none; height: 100%; border-radius: 0; padding: 0; overflow: hidden; animation: none; }
   @keyframes up { from { transform: translateY(40px); opacity: .5; } }
   .sheet h2 { margin: 0; font-size: 26px; font-weight: 500; letter-spacing: -.6px; }
   .sheet .x { float: right; width: 46px; height: 46px; border-radius: 50%; background: #20242f; border: 1.5px solid #2c3140; font-size: 20px; margin: -4px -2px 0 0; }
@@ -269,8 +269,8 @@
   .pdp.full-visual .drink-photo { width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 0; }
   .pdp.full-visual .drink-video { position: absolute; inset: 0; opacity: 0; }
   /* These clips contain a centered 1080 px picture in a 1280 px frame. */
-  .pdp.full-visual .drink-video.padded { inset: -9.2593% 0 auto; height: 118.5185%; }
-  .pdp.full-visual .drink-video.playing { opacity: 1; }
+  .pdp.full-visual .drink-photo.padded { position: absolute; inset: -9.2593% 0 auto; height: 118.5185%; }
+  .pdp.full-visual .drink-video.playing { opacity: 1; transition: opacity .16s ease-out; }
   .pdp.full-visual::before { z-index: 1; background: linear-gradient(180deg, #16100ce0, #16100c52 24%, transparent 40%, transparent 61%, #21130dd9 100%); }
   .pdp.full-visual .pfoot { margin-top: auto; }
   .pfoot { position: relative; z-index: 2; padding: 0 0 calc(14px + env(safe-area-inset-bottom)); }
@@ -493,7 +493,7 @@
 
 <script>
 /* ===== Адрес сервера (Google Apps Script → Развернуть → URL веб-приложения) ===== */
-const APP_VERSION = '2026-11-18.1';
+const APP_VERSION = '2026-11-18.2';
 const API_URL = 'https://script.google.com/macros/s/AKfycbx_WCCQXTPAEtkKRtG1jhv4Jm7Hqeb5D1EKeqi398vIlVUqTdTNg8FRDx4ojjaq1xA1/exec';
 
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -582,13 +582,17 @@ const ADDON_PHOTOS = new Map([
 function imageKey(name) {
   return String(name || '').normalize('NFC').toLowerCase().replace(/ё/g, 'е').replace(/[\s‐‑‒–—−-]+/g, ' ').trim();
 }
-function drinkVisual(name, placement) {
+function drinkVisual(name, placement, videoFile) {
   const file = DRINK_PHOTOS.get(imageKey(name));
   if (!file) return cupSvg(name);
   const large = placement === 'hero' || placement === 'detail';
-  const dimensions = large ? 'width="720" height="1080"' : 'width="320" height="320"';
-  return '<img class="drink-photo" src="menu-images/drinks/' + file + (large ? '' : '-thumb') + '.webp" ' + dimensions +
-    ' alt="" decoding="async"' + (placement === 'menu' ? ' loading="lazy"' : '') + ' data-drink-photo="' + esc(name) + '">';
+  const photo = 'menu-images/drinks/' + file + (large ? '' : '-thumb') + '.webp';
+  const dimensions = videoFile ? 'width="720" height="1280"' :
+    large ? 'width="720" height="1080"' : 'width="320" height="320"';
+  const padded = videoFile && PADDED_DRINK_VIDEOS.has(videoFile) ? ' padded' : '';
+  return '<img class="drink-photo' + padded + '" src="' + (videoFile ? drinkPosterSrc(videoFile) : photo) + '" ' + dimensions +
+    ' alt="" decoding="async"' + (placement === 'menu' ? ' loading="lazy"' : '') +
+    (videoFile ? ' data-photo-fallback="' + photo + '"' : '') + ' data-drink-photo="' + esc(name) + '">';
 }
 
 const DRINK_VIDEOS = new Map([
@@ -612,7 +616,10 @@ const DRINK_VIDEOS = new Map([
 ]);
 const PADDED_DRINK_VIDEOS = new Set(['iced-latte', 'cappuccino']);
 const drinkVideoPlayers = new Map();
+const drinkVideoPosters = new Map();
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+function drinkPosterSrc(file) { return 'menu-images/drinks/' + file + '-poster.webp'; }
 
 function prepareDrinkVideo(file) {
   if (!file || reducedMotion.matches) return;
@@ -632,6 +639,15 @@ function prepareDrinkVideo(file) {
 }
 
 function preloadMenuVideos() {
+  if (reducedMotion.matches) return;
+  for (const item of state.menu.items) {
+    const file = DRINK_VIDEOS.get(imageKey(item.name));
+    if (!file || drinkVideoPosters.has(file)) continue;
+    const poster = new Image();
+    poster.fetchPriority = 'low';
+    poster.src = drinkPosterSrc(file);
+    drinkVideoPosters.set(file, poster);
+  }
   // Загружаем видео для баннера и айс-латте, остальные загружаются при открытии карточки.
   const first = state.menu.items[0];
   if (first) prepareDrinkVideo(DRINK_VIDEOS.get(imageKey(first.name)));
@@ -649,6 +665,13 @@ document.addEventListener('error', event => {
     return;
   }
   if (!(image instanceof HTMLImageElement)) return;
+  if (image.dataset.photoFallback) {
+    const photo = image.dataset.photoFallback;
+    delete image.dataset.photoFallback;
+    image.classList.remove('padded');
+    image.src = photo;
+    return;
+  }
   if (image.hasAttribute('data-drink-photo')) {
     const hero = image.closest('.hero');
     if (hero) hero.classList.remove('has-photo');
@@ -1001,7 +1024,7 @@ function openItem(it) {
   let html = '<div class="pdp' + (fullVisual ? ' full-visual' : '') + '"><div class="ptop"><button class="rbtn" id="pBack" aria-label="Назад">' + BACK_SVG + '</button>' +
     '<div class="ptitle">' + esc(it.name) + '</div><span class="rbtn" style="visibility:hidden"></span></div>';
   html += '<div class="pinfo">' + esc(it.desc || '') + (it.stamp ? '<div><span class="tag">за напиток — печать на карту</span></div>' : '') + '</div>';
-  html += '<div class="phero">' + drinkVisual(it.name, 'detail') + '</div>';
+  html += '<div class="phero">' + drinkVisual(it.name, 'detail', reducedMotion.matches ? null : file) + '</div>';
   html += '<div class="pfoot">';
   if (!canOrder()) html += '<div class="off">Предзаказ сейчас не работает.</div>';
   html += '<div class="agrid hidden" id="aGrid"></div>';
