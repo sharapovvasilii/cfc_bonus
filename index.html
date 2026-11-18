@@ -267,8 +267,9 @@
   .phero .drink-photo { display: block; width: auto; max-width: calc(100% - 32px); height: 100%; max-height: 390px; object-fit: cover; border-radius: 22px; }
   .pdp.full-visual .phero { position: absolute; inset: 0; z-index: 0; display: block; overflow: hidden; padding: 0; pointer-events: none; }
   .pdp.full-visual .drink-photo { width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 0; }
-  /* The 1280 px video contains a centered 1080 px picture with black bands. */
-  .pdp.full-visual .drink-video { position: absolute; top: -9.2593%; left: 0; height: 118.5185%; opacity: 0; }
+  .pdp.full-visual .drink-video { position: absolute; inset: 0; opacity: 0; }
+  /* These clips contain a centered 1080 px picture in a 1280 px frame. */
+  .pdp.full-visual .drink-video.padded { inset: -9.2593% 0 auto; height: 118.5185%; }
   .pdp.full-visual .drink-video.playing { opacity: 1; }
   .pdp.full-visual::before { z-index: 1; background: linear-gradient(180deg, #16100ce0, #16100c52 24%, transparent 40%, transparent 61%, #21130dd9 100%); }
   .pdp.full-visual .pfoot { margin-top: auto; }
@@ -492,7 +493,7 @@
 
 <script>
 /* ===== Адрес сервера (Google Apps Script → Развернуть → URL веб-приложения) ===== */
-const APP_VERSION = '2026-11-17.4';
+const APP_VERSION = '2026-11-18.1';
 const API_URL = 'https://script.google.com/macros/s/AKfycbx_WCCQXTPAEtkKRtG1jhv4Jm7Hqeb5D1EKeqi398vIlVUqTdTNg8FRDx4ojjaq1xA1/exec';
 
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -591,29 +592,50 @@ function drinkVisual(name, placement) {
 }
 
 const DRINK_VIDEOS = new Map([
-  ['iced-latte', 'menu-images/drinks/iced-latte.mp4?v=2'],
+  ['эспрессо', 'espresso'],
+  ['американо', 'americano'],
+  ['латте', 'latte'],
+  ['капучино', 'cappuccino'],
+  ['какао', 'cocoa'],
+  ['раф кофе', 'raf'],
+  ['мокко', 'mocha'],
+  ['флэт уайт', 'flat-white'],
+  ['айс капучино', 'iced-cappuccino'],
+  ['айс американо', 'iced-americano'],
+  ['айс латте', 'iced-latte'],
+  ['манго маракуйя', 'mango-passionfruit'],
+  ['манго милк', 'mango-milk'],
+  ['вита твист', 'vita-twist'],
+  ['ягодный микс', 'berry-mix'],
+  ['молочный улун', 'milk-oolong'],
+  ['чабрец', 'thyme-tea'],
 ]);
+const PADDED_DRINK_VIDEOS = new Set(['iced-latte', 'cappuccino']);
 const drinkVideoPlayers = new Map();
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 function prepareDrinkVideo(file) {
-  if (reducedMotion.matches || !DRINK_VIDEOS.has(file)) return;
+  if (!file || reducedMotion.matches) return;
   const cached = drinkVideoPlayers.get(file);
   if (cached && !cached.error) return cached;
   const video = document.createElement('video');
   video.className = 'drink-photo drink-video';
+  video.classList.toggle('padded', PADDED_DRINK_VIDEOS.has(file));
   video.preload = 'auto';
   video.muted = true;
   video.playsInline = true;
   video.loop = true;
   video.setAttribute('aria-hidden', 'true');
-  video.src = DRINK_VIDEOS.get(file);
+  video.src = 'menu-images/drinks/' + file + '.mp4' + (file === 'iced-latte' ? '?v=2' : '');
   drinkVideoPlayers.set(file, video);
   return video;
 }
 
 function preloadMenuVideos() {
-  state.menu.items.forEach(it => prepareDrinkVideo(DRINK_PHOTOS.get(imageKey(it.name))));
+  // Загружаем видео для баннера и айс-латте, остальные загружаются при открытии карточки.
+  const first = state.menu.items[0];
+  if (first) prepareDrinkVideo(DRINK_VIDEOS.get(imageKey(first.name)));
+  if (state.menu.items.some(it => imageKey(it.name) === 'айс латте')) prepareDrinkVideo('iced-latte');
 }
 
 document.addEventListener('playing', event => {
@@ -974,8 +996,8 @@ function openItem(it) {
     return s + state.menu.addons.filter(a => adds.has(a.name)).reduce((t, a) => t + a.price, 0);
   };
   const multi = it.sizes.length > 1;
-  const file = DRINK_PHOTOS.get(imageKey(it.name));
-  const fullVisual = DRINK_VIDEOS.has(file);
+  const file = DRINK_VIDEOS.get(imageKey(it.name));
+  const fullVisual = !!file;
   let html = '<div class="pdp' + (fullVisual ? ' full-visual' : '') + '"><div class="ptop"><button class="rbtn" id="pBack" aria-label="Назад">' + BACK_SVG + '</button>' +
     '<div class="ptitle">' + esc(it.name) + '</div><span class="rbtn" style="visibility:hidden"></span></div>';
   html += '<div class="pinfo">' + esc(it.desc || '') + (it.stamp ? '<div><span class="tag">за напиток — печать на карту</span></div>' : '') + '</div>';
